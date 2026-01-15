@@ -1,0 +1,13 @@
+{
+    "name": "Semantic Release",
+    "description": "Automated versioning and changelog generation using semantic-release",
+    "iconName": "package",
+    "categories": [
+        "Deployment"
+    ],
+    "filePatterns": [
+        "package.json",
+        ".releaserc.json",
+        ".releaserc.yml"
+    ]
+}

@@ -1,0 +1,12 @@
+{
+    "name": "Dashboard Sync",
+    "description": "Automated synchronization of documentation and dashboard metrics",
+    "iconName": "sync",
+    "categories": [
+        "Automation"
+    ],
+    "filePatterns": [
+        "docs/**",
+        "dashboard/**"
+    ]
+}

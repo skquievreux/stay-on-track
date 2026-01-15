@@ -1,0 +1,15 @@
+{
+    "name": "CI Pipeline",
+    "description": "Continuous Integration workflow with linting, building, and verification",
+    "iconName": "check-circle",
+    "categories": [
+        "Continuous Integration"
+    ],
+    "filePatterns": [
+        "package.json",
+        "*.ts",
+        "*.tsx",
+        "*.js",
+        "*.jsx"
+    ]
+}

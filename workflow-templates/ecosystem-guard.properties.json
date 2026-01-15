@@ -1,0 +1,13 @@
+{
+    "name": "Ecosystem Guard",
+    "description": "Dependency monitoring, security scanning, and ecosystem health checks",
+    "iconName": "shield",
+    "categories": [
+        "Security",
+        "Code Quality"
+    ],
+    "filePatterns": [
+        "package.json",
+        "package-lock.json"
+    ]
+}

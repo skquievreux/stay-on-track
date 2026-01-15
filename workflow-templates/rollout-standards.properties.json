@@ -1,0 +1,13 @@
+{
+    "name": "Rollout Standards",
+    "description": "Deployment governance and rollout quality gates",
+    "iconName": "rocket",
+    "categories": [
+        "Deployment"
+    ],
+    "filePatterns": [
+        "package.json",
+        "Dockerfile",
+        "docker-compose.yml"
+    ]
+}

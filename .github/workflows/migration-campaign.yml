@@ -1,0 +1,38 @@
+name: Migration Campaign
+
+on:
+  workflow_dispatch:
+    inputs:
+      repos:
+        description: 'Space-separated list of repository names (e.g., "app1 app2 app3")'
+        required: true
+        type: string
+
+jobs:
+  migrate:
+    name: Migrate Repositories
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Management Repo
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "Migration Bot"
+          git config --global user.email "bot@quievreux.com"
+
+      - name: Run Migration Script
+        env:
+          GH_TOKEN: ${{ secrets.MIGRATION_TOKEN }} # Needs repo scope for other repositories
+        run: |
+          chmod +x scripts/migrate-apps.sh
+          ./scripts/migrate-apps.sh "${{ github.event.inputs.repos }}"
