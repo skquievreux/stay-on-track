@@ -6,7 +6,7 @@ class InputWindow(ctk.CTkToplevel):
         super().__init__()
         self.storage_manager = storage_manager
         self.on_close_callback = on_close_callback
-        
+
         self.title("Stay On Track - Log Activity")
         self.geometry("400x200")
         self.attributes("-topmost", True)
@@ -31,7 +31,7 @@ class InputWindow(ctk.CTkToplevel):
 
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
-    def submit(self, event=None):
+    def submit(self, _event=None):
         comment = self.entry.get().strip()
         if comment:
             self.storage_manager.save_entry(comment)
@@ -81,10 +81,10 @@ class SettingsWindow(ctk.CTkToplevel):
             "end_time": self.ent_end.get().strip()
         }
         self.config_manager.save_config(new_config)
-        
+
         if self.on_save_callback:
             self.on_save_callback()
-        
+
         self.destroy()
 
 class HistoryWindow(ctk.CTkToplevel):
@@ -94,7 +94,7 @@ class HistoryWindow(ctk.CTkToplevel):
         self.title("Today's Activity")
         self.geometry("400x500")
         self.attributes("-topmost", True)
-        
+
         # Title
         self.lbl_title = ctk.CTkLabel(self, text="Activity Log", font=("Arial", 16, "bold"))
         self.lbl_title.pack(pady=10)
@@ -107,7 +107,7 @@ class HistoryWindow(ctk.CTkToplevel):
 
     def _load_entries(self):
         entries = self.storage_manager.get_today_entries()
-        
+
         if not entries:
             lbl = ctk.CTkLabel(self.scroll_frame, text="No entries for today.")
             lbl.pack(pady=10)
@@ -116,17 +116,18 @@ class HistoryWindow(ctk.CTkToplevel):
         # Reverse order to see latest first
         for entry in reversed(entries):
             # entry structure: [Timestamp, Comment]
-            if len(entry) < 2: continue
-            
+            if len(entry) < 2:
+                continue
+
             timestamp = entry[0]
             comment = entry[1]
-            
+
             # Row Frame
             row_frame = ctk.CTkFrame(self.scroll_frame)
             row_frame.pack(pady=2, padx=5, fill="x")
-            
+
             lbl_time = ctk.CTkLabel(row_frame, text=timestamp, text_color="gray", width=60)
             lbl_time.pack(side="left", padx=5)
-            
+
             lbl_comment = ctk.CTkLabel(row_frame, text=comment, anchor="w", wraplength=250)
             lbl_comment.pack(side="left", padx=5, fill="x", expand=True)
