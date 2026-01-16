@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "name": "quievreux-shared",
   "version": "0.0.0",
@@ -25,4 +26,24 @@
   "dependencies": {
     "@squievreux/ui": "workspace:*"
   }
+=======
+{
+    "name": "stay-on-track",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "release": "semantic-release"
+    },
+    "devDependencies": {
+        "@semantic-release/changelog": "^6.0.3",
+        "@semantic-release/exec": "^6.0.3",
+        "@semantic-release/git": "^10.0.1",
+        "@semantic-release/github": "^10.0.0",
+        "semantic-release": "^24.0.0"
+    },
+    "packageManager": "pnpm@10.11.0",
+    "engines": {
+        "node": ">=20.0.0"
+    }
+>>>>>>> origin/feature/installer-and-ci
 }

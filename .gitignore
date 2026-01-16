@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 node_modules
 .DS_Store
 dist
@@ -5,3 +6,16 @@ dist
 coverage
 .env
 .npmrc
+=======
+
+venv/
+__pycache__/
+*.pyc
+.idea/
+.vscode/
+*.log
+config.json
+dist/
+build/
+*.spec
+>>>>>>> origin/feature/installer-and-ci
