@@ -7,7 +7,8 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[('src/config.py', '.')],  # Include config.py logic if needed, though it's imported. 'src' not strictly needed if pathex is right, but safe.
-    hiddenimports=['PIL', 'pystray', 'customtkinter', 'babel.numbers'],
+    hiddenimports=['PIL', 'pystray', 'customtkinter', 'babel.numbers', 
+                   'config', 'storage', 'ui', 'scheduler'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

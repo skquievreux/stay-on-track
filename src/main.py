@@ -43,9 +43,19 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
 
         # Tray Icon
         self.icon_image = create_image(64, 64, 'black', 'green')
+        
+        # Import version
+        try:
+            from version import __version__
+            version_text = f"v{__version__}"
+        except ImportError:
+            version_text = "v1.0.0"
+        
         self.menu = pystray.Menu(
             menu_item(lambda text: self.next_run_str, lambda: None,
                       enabled=False),
+            menu_item(lambda text: version_text, lambda: None, enabled=False),
+            pystray.Menu.SEPARATOR,
             menu_item('Log Activity', self.trigger_popup),
             menu_item('Show History', self.open_history),
             menu_item('Settings', self.open_settings),
