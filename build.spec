@@ -4,11 +4,11 @@ block_cipher = None
 
 a = Analysis(
     ['src/main.py'],
-    pathex=[],
+    pathex=['src'],  # WICHTIG: src Ordner hinzufügen!
     binaries=[],
-    datas=[('src/config.py', '.')],  # Include config.py logic if needed, though it's imported. 'src' not strictly needed if pathex is right, but safe.
-    hiddenimports=['PIL', 'pystray', 'customtkinter', 'babel.numbers', 
-                   'config', 'storage', 'ui', 'scheduler'],
+    datas=[],
+    hiddenimports=['PIL', 'pystray', 'customtkinter', 'babel.numbers',
+                   'config', 'storage', 'ui', 'scheduler', 'version'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
