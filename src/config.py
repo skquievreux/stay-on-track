@@ -12,7 +12,7 @@ DEFAULT_CONFIG = {
 
 class ConfigManager:
     def __init__(self, config_filename="config.json"):
-        # Store config in the same place as the output_dir for simplicity and persistence
+        # Store config in the same place as the output_dir for simplicity
         self.config_dir = Path.home() / "Documents" / "StayOnTrack"
         self.config_file = self.config_dir / config_filename
         self.ensure_config_dir()
@@ -27,17 +27,17 @@ class ConfigManager:
         if not self.config_file.exists():
             return DEFAULT_CONFIG.copy()
         try:
-            with open(self.config_file, "r") as f:
+            with open(self.config_file, "r", encoding="utf-8") as f:
                 loaded = json.load(f)
                 # Merge with default to ensure all keys exist
                 return {**DEFAULT_CONFIG, **loaded}
         except json.JSONDecodeError:
-             return DEFAULT_CONFIG.copy()
+            return DEFAULT_CONFIG.copy()
 
     def save_config(self, new_config):
         self.config.update(new_config)
         self.ensure_config_dir()
-        with open(self.config_file, "w") as f:
+        with open(self.config_file, "w", encoding="utf-8") as f:
             json.dump(self.config, f, indent=4)
         self.ensure_output_dir()
 
