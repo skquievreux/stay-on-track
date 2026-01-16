@@ -9,6 +9,7 @@ class Scheduler:
         self.trigger_callback = trigger_callback
         self.running = False
         self.next_run_time = None
+        self.thread = None
 
     def start(self):
         if self.running:

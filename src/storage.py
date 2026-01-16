@@ -2,7 +2,6 @@
 import csv
 import datetime
 import os
-from pathlib import Path
 
 class StorageManager:
     def __init__(self, output_dir):
@@ -15,7 +14,7 @@ class StorageManager:
     def save_entry(self, comment):
         filename = self._get_daily_filename()
         file_exists = os.path.exists(filename)
-        
+
         timestamp = datetime.datetime.now().strftime("%H:%M:%S")
 
         with open(filename, "a", newline="", encoding="utf-8") as f:
@@ -23,14 +22,14 @@ class StorageManager:
             if not file_exists:
                 writer.writerow(["Timestamp", "Activity"])
             writer.writerow([timestamp, comment])
-        
+
         print(f"Saved: {timestamp} - {comment}")
 
     def get_today_entries(self):
         filename = self._get_daily_filename()
         if not os.path.exists(filename):
             return []
-        
+
         entries = []
         try:
             with open(filename, "r", encoding="utf-8") as f:
@@ -39,8 +38,8 @@ class StorageManager:
                 for row in reader:
                     if len(row) >= 2:
                         entries.append(row)
-        except Exception as e:
+        except (FileNotFoundError, csv.Error) as e:
             print(f"Error reading log: {e}")
             return []
-            
+
         return entries
