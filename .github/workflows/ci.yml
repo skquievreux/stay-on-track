@@ -34,10 +34,13 @@ jobs:
       run: |
         pyinstaller build.spec
 
-    - name: Setup Inno Setup
-      uses: thirdwavelabs/inno-setup-action@v1.0.4
-      with:
-        path: setup_script.iss
+    - name: Install Inno Setup
+      run: |
+        choco install innosetup -y
+
+    - name: Compile Installer with Inno Setup
+      run: |
+        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" setup_script.iss
 
     - name: Upload Installer Artifact
       uses: actions/upload-artifact@v4
