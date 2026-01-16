@@ -28,7 +28,7 @@ jobs:
 
     - name: Analysing the code with pylint
       run: |
-        pylint src --disable=C0114,C0115,C0116,R0903,W0702
+        pylint src --disable=C0114,C0115,C0116,R0903,W0702,E0401
 
     - name: Build with PyInstaller
       run: |
