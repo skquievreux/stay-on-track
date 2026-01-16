@@ -40,7 +40,7 @@
         "@typescript-eslint/parser": "^8.51.0",
         "eslint": "^9.39.2",
         "globals": "^16.5.0",
-        "lucide-react": "^0.460.0",
+        "lucide-react": "^0.562.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "tsup": "^8.0.0",
