@@ -1,43 +1,24 @@
 {
     "branches": [
-<<<<<<< HEAD
-        "main",
-        "master"
-=======
         "main"
->>>>>>> origin/feature/installer-and-ci
     ],
     "plugins": [
         "@semantic-release/commit-analyzer",
         "@semantic-release/release-notes-generator",
         "@semantic-release/changelog",
-<<<<<<< HEAD
         [
-            "@semantic-release/npm",
+            "@semantic-release/exec",
             {
-                "npmPublish": false
+                "prepareCmd": "echo ${nextRelease.version} > version.txt"
             }
         ],
-        [
-            "@semantic-release/github",
-            {
-                "assets": []
-            }
-        ],
-=======
         "@semantic-release/github",
->>>>>>> origin/feature/installer-and-ci
         [
             "@semantic-release/git",
             {
                 "assets": [
-<<<<<<< HEAD
-                    "package.json",
-                    "CHANGELOG.md"
-=======
                     "CHANGELOG.md",
-                    "package.json"
->>>>>>> origin/feature/installer-and-ci
+                    "version.txt"
                 ],
                 "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
             }
