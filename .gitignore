@@ -6,3 +6,6 @@ __pycache__/
 .vscode/
 *.log
 config.json
+dist/
+build/
+*.spec

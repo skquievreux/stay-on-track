@@ -62,11 +62,15 @@ class Scheduler:
             time.sleep(2) 
 
     def _check_and_trigger(self):
+        current_time_str = datetime.datetime.now().strftime("%H:%M")
         start_time = self.config_manager.get("start_time")
         end_time = self.config_manager.get("end_time")
 
         if self._is_time_in_range(start_time, end_time):
+            print(f"Time {current_time_str} is in range {start_time}-{end_time}. Triggering...")
             self.trigger_callback()
+        else:
+            print(f"Time {current_time_str} is OUT of range {start_time}-{end_time}. Skipping.")
 
     def _is_time_in_range(self, start, end):
         now = datetime.datetime.now().time()

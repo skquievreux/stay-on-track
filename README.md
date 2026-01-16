@@ -1,69 +1,85 @@
-
 # Stay On Track
 
-A productivity tool that gently reminds you every 15 minutes to log your current activity. Designed to be unobtrusive, it lives in your system tray and helps you keep track of your workday with minimal friction.
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 
-## Key Features
+**Stay On Track** is a minimalist productivity tool designed to help you maintain focus and track your workday with zero friction. It sits quietly in your system tray and gently prompts you every 15 minutes to log your current activity.
 
-- **Quarter-Hour Intervals**: Aligns reminders to clock time (:00, :15, :30, :45).
-- **System Tray Integration**: Quietly runs in the background. Shows the next scheduled reminder time.
-- **Activity History**: View today's logged activities directly from the app.
-- **Local Storage**: Data is saved securely in CSV format in your Documents folder.
-- **Auto-Start**: Includes a simple script to launch automatically with Windows.
+## ✨ Features
 
-## Installation
+- ** unobtrusive Reminders**: Popups appear at quarter-hour intervals (:00, :15, :30, :45).
+- **📝 Effortless Logging**: Just type and hit Enter. No complex forms.
+- **📊 Daily History**: View a chronological log of today's activities directly within the app.
+- **⚙️ Customizable**: Set your preferred workday start and end times.
+- **🔒 Privacy First**: All data is stored locally in `Documents/StayOnTrack`. No cloud, no tracking.
+- **🚀 Auto-Start**: Simply check the option during installation to run at startup.
+
+## 📥 Installation
+
+### Download
+Download the latest Windows Installer (`StayOnTrack_Setup.exe`) from the [Releases](https://github.com/skquievreux/stay-on-track/releases) page.
+
+### Setup
+1.  Run the installer.
+2.  Follow the prompts.
+3.  (Optional) Select "Run at Windows startup" for the best experience.
+4.  Launch "Stay On Track" from your Desktop or Start Menu.
+
+## 🛠️ Usage
+
+1.  **System Tray**: Look for the black/green square icon in your system tray (near the clock).
+2.  **Log Activity**: When prompted, type what you are working on.
+3.  **Right-Click Menu**: access additional features:
+    -   **Next Reminder**: See when the next prompt is due.
+    -   **Log Activity**: Manually trigger the popup.
+    -   **Show History**: Review today's logs.
+    -   **Settings**: Adjust start/end times.
+
+## 📂 Data Storage
+
+Your activity logs and configuration are strictly local:
+-   **Logs**: `C:\Users\<YOU>\Documents\StayOnTrack\YYYY-MM-DD.csv`
+-   **Config**: `C:\Users\<YOU>\Documents\StayOnTrack\config.json`
+
+## 💻 Development
+
+Want to contribute or build from source?
 
 ### Prerequisites
-- Python 3.10 or higher
-- Windows OS (Tested on Windows 10/11)
+-   Python 3.10+
+-   Git
 
 ### Setup
 
-1.  **Clone the Repository** (or download the source):
+```bash
+git clone https://github.com/skquievreux/stay-on-track.git
+cd stay-on-track
+python -m venv venv
+.\venv\Scripts\Activate
+pip install -r requirements.txt
+```
+
+### Run Locally
+
+```bash
+python src/main.py
+```
+
+### Build Installer
+We use PyInstaller and Inno Setup.
+
+1.  **Build EXE**:
     ```bash
-    git clone <repository-url>
-    cd Stay-On-Track
+    pyinstaller build.spec
     ```
+2.  **Create Setup**:
+    Compile `setup_script.iss` using Inno Setup Compiler.
 
-2.  **Create Virtual Environment & Install Dependencies**:
-    ```bash
-    python -m venv venv
-    .\venv\Scripts\Activate
-    pip install -r requirements.txt
-    ```
+## 🤝 Contributing
 
-3.  **Run the Application**:
-    ```bash
-    python src/main.py
-    ```
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-4.  **Enable Auto-Start (Optional)**:
-    Run the included PowerShell script to create a startup shortcut:
-    ```powershell
-    powershell -ExecutionPolicy Bypass -File .\install_autostart.ps1
-    ```
+## 📄 License
 
-## Usage
-
-- **Logging**: When the popup appears, type your activity and press Enter.
-- **Menu**: Right-click the system tray icon (Black/Green square) to:
-    - See the **Next Reminder** time.
-    - **Log Activity** manually.
-    - **Show History** of today's entries.
-    - Change **Settings** (Start/End time).
-    - **Exit** the application.
-
-## Data Location
-
-Logs are stored in: `C:\Users\<YOU>\Documents\StayOnTrack\`
-
-## Technologies
-
-- **Python**: Core logic.
-- **CustomTkinter**: Modern GUI framework.
-- **Pystray**: System tray integration.
-- **Pillow**: Image handling for icons.
-
-## License
-
-MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
