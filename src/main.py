@@ -13,6 +13,11 @@ from storage import StorageManager
 from ui import InputWindow, SettingsWindow, HistoryWindow
 from scheduler import Scheduler
 
+try:
+    from version import __version__
+except ImportError:
+    __version__ = "1.0.0"
+
 def create_image(width, height, color1, color2):
     image = Image.new('RGB', (width, height), color1)
     dc = ImageDraw.Draw(image)
@@ -43,14 +48,13 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
 
         # Tray Icon
         self.icon_image = create_image(64, 64, 'black', 'green')
-        
-        # Import version
+
+        # Get version
         try:
-            from version import __version__
             version_text = f"v{__version__}"
-        except ImportError:
+        except NameError:
             version_text = "v1.0.0"
-        
+
         self.menu = pystray.Menu(
             menu_item(lambda text: self.next_run_str, lambda: None,
                       enabled=False),
