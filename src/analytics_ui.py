@@ -2,6 +2,7 @@
 import datetime
 import customtkinter as ctk
 from analytics import AnalyticsEngine
+from category_engine import CategoryEngine
 
 class AnalyticsWindow(ctk.CTkToplevel):
     """Multi-day analytics dashboard"""
@@ -10,10 +11,11 @@ class AnalyticsWindow(ctk.CTkToplevel):
         super().__init__()
         self.storage_manager = storage_manager
         self.analytics = AnalyticsEngine(storage_manager)
+        self.category_engine = CategoryEngine()
         self.days = 7  # Default to last 7 days
         
         self.title("Analytics Dashboard")
-        self.geometry("600x700")
+        self.geometry("600x750")
         self.attributes("-topmost", True)
         
         # Title
@@ -51,7 +53,7 @@ class AnalyticsWindow(ctk.CTkToplevel):
         self.btn_30days.pack(side="left", padx=5)
         
         # Scrollable content
-        self.scroll_frame = ctk.CTkScrollableFrame(self, width=580, height=550)
+        self.scroll_frame = ctk.CTkScrollableFrame(self, width=580, height=600)
         self.scroll_frame.pack(pady=10, padx=10, fill="both", expand=True)
         
         self._load_analytics()
@@ -98,6 +100,9 @@ Most Active Hour:     {stats['most_active_hour']:02d}:00 ({stats['most_active_ho
             justify="left"
         ).pack(pady=10, padx=20)
         
+        # Category Breakdown Section (NEW)
+        self._create_category_breakdown()
+        
         # Daily Breakdown Section
         breakdown_frame = ctk.CTkFrame(self.scroll_frame)
         breakdown_frame.pack(pady=10, padx=10, fill="x")
@@ -142,6 +147,97 @@ Most Active Hour:     {stats['most_active_hour']:02d}:00 ({stats['most_active_ho
                     font=("Courier New", 11),
                     anchor="w"
                 ).pack(side="left")
+    
+    def _create_category_breakdown(self):
+        """Create category breakdown visualization"""
+        # Get all entries for the period
+        end_date = datetime.date.today()
+        start_date = end_date - datetime.timedelta(days=self.days-1)
+        
+        entries_by_date = self.storage_manager.get_date_range_entries(start_date, end_date)
+        
+        # Flatten all entries
+        all_entries = []
+        for date, day_entries in entries_by_date.items():
+            all_entries.extend(day_entries)
+        
+        if not all_entries:
+            return
+        
+        # Get category breakdown
+        breakdown = self.category_engine.get_category_breakdown(all_entries)
+        
+        if not breakdown:
+            return
+        
+        # Create frame
+        category_frame = ctk.CTkFrame(self.scroll_frame)
+        category_frame.pack(pady=10, padx=10, fill="x")
+        
+        ctk.CTkLabel(
+            category_frame,
+            text=f"📊 Category Breakdown (Last {self.days} Days)",
+            font=("Arial", 14, "bold")
+        ).pack(pady=10)
+        
+        # Create bars for each category
+        for category, data in breakdown.items():
+            self._create_category_bar(category_frame, category, data)
+    
+    def _create_category_bar(self, parent, category, data):
+        """Create a visual bar for a category"""
+        count = data["count"]
+        percentage = data["percentage"]
+        
+        row = ctk.CTkFrame(parent, fg_color="transparent")
+        row.pack(pady=3, padx=10, fill="x")
+        
+        # Category label
+        ctk.CTkLabel(
+            row,
+            text=category,
+            font=("Arial", 11),
+            width=150,
+            anchor="w"
+        ).pack(side="left", padx=5)
+        
+        # Visual bar
+        bar_length = min(int(percentage / 2), 40)
+        bar = "█" * bar_length if bar_length > 0 else "·"
+        
+        ctk.CTkLabel(
+            row,
+            text=bar,
+            font=("Courier New", 11),
+            text_color=self._get_category_color(category),
+            anchor="w",
+            width=250
+        ).pack(side="left", padx=5)
+        
+        # Percentage and count
+        ctk.CTkLabel(
+            row,
+            text=f"{percentage}% ({count})",
+            font=("Arial", 11),
+            width=80,
+            anchor="e"
+        ).pack(side="left", padx=5)
+    
+    def _get_category_color(self, category):
+        """Get color for category"""
+        colors = {
+            "🍽️ Essen": "#FF6B6B",
+            "💼 Jobsuche": "#4ECDC4",
+            "💬 Meetings": "#95E1D3",
+            "🛠️ Entwicklung": "#F38181",
+            "📝 Dokumentation": "#AA96DA",
+            "🤖 KI/Automation": "#FCBAD3",
+            "📚 Lernen": "#FFFFD2",
+            "✍️ Schreiben": "#A8D8EA",
+            "🔍 Recherche": "#B4E7CE",
+            "❓ Sonstiges": "#CCCCCC"
+        }
+        return colors.get(category, "gray")
     
     def _create_day_bar(self, parent, summary):
         """Create a visual bar for a day's activity"""
