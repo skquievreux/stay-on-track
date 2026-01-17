@@ -1,14 +1,24 @@
 # -*- mode: python ; coding: utf-8 -*-
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 block_cipher = None
+
+# Collect all customtkinter data files
+datas = collect_data_files('customtkinter')
+
+# Collect all submodules
+hiddenimports = collect_submodules('customtkinter') + [
+    'PIL', 'PIL._tkinter_finder', 'pystray', 'babel.numbers',
+    'config', 'storage', 'ui', 'scheduler', 'version',
+    'analytics', 'analytics_ui', 'category_engine'
+]
 
 a = Analysis(
     ['src/main.py'],
     pathex=['src'],  # WICHTIG: src Ordner hinzufügen!
     binaries=[],
-    datas=[],
-    hiddenimports=['PIL', 'pystray', 'customtkinter', 'babel.numbers',
-                   'config', 'storage', 'ui', 'scheduler', 'version'],
+    datas=datas,
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
