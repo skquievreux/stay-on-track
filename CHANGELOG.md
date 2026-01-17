@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/skquievreux/stay-on-track/compare/v1.1.0...v1.2.0) (2026-01-17)
+
+
+### Features
+
+* professional installer with Quievreux Consulting branding ([9134fa8](https://github.com/skquievreux/stay-on-track/commit/9134fa8b987adb361f056777ec00fe4d985a4a68))
+
 # [1.1.0](https://github.com/skquievreux/stay-on-track/compare/v1.0.2...v1.1.0) (2026-01-17)
 
 
