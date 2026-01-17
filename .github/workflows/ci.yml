@@ -99,5 +99,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION=$(grep "Number=" version.txt | cut -d'=' -f2)
-          gh release upload v${VERSION} ./installer/StayOnTrack_Setup_v${VERSION}.exe --clobber
+          gh release upload v${VERSION} ./installer/*.exe --clobber
 
