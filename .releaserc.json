@@ -9,7 +9,7 @@
         [
             "@semantic-release/exec",
             {
-                "prepareCmd": "echo ${nextRelease.version} > version.txt"
+                "prepareCmd": "echo [Version]> version.txt && echo Number=${nextRelease.version}>> version.txt && echo __version__ = \\\"${nextRelease.version}\\\" > version.py && echo __build_date__ = \\\"$(date +%%Y-%%m-%%d)\\\" >> version.py && echo __app_name__ = \\\"Stay On Track\\\" >> version.py"
             }
         ],
         "@semantic-release/github",
@@ -18,7 +18,8 @@
             {
                 "assets": [
                     "CHANGELOG.md",
-                    "version.txt"
+                    "version.txt",
+                    "version.py"
                 ],
                 "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
             }
