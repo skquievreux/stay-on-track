@@ -11,6 +11,7 @@ from pystray import MenuItem as menu_item
 from config import ConfigManager
 from storage import StorageManager
 from ui import InputWindow, SettingsWindow, HistoryWindow
+from analytics_ui import AnalyticsWindow
 from scheduler import Scheduler
 
 try:
@@ -44,6 +45,7 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
         self.popup_window = None
         self.settings_window = None
         self.history_window = None
+        self.analytics_window = None
         self.next_run_str = "Calculating..."
 
         # Tray Icon
@@ -62,6 +64,7 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
             pystray.Menu.SEPARATOR,
             menu_item('Log Activity', self.trigger_popup),
             menu_item('Show History', self.open_history),
+            menu_item('Analytics (Multi-Day)', self.open_analytics),
             menu_item('Settings', self.open_settings),
             menu_item('Exit', self.quit_app)
         )
@@ -129,6 +132,18 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
             self.history_window.focus_force()
         else:
             self.history_window.lift()
+
+    def open_analytics(self):
+        self.after(0, self._show_analytics_internal)
+
+    def _show_analytics_internal(self):
+        if self.analytics_window is None or not \
+                self.analytics_window.winfo_exists():
+            self.analytics_window = AnalyticsWindow(self.storage_manager)
+            self.analytics_window.lift()
+            self.analytics_window.focus_force()
+        else:
+            self.analytics_window.lift()
 
     def _settings_saved(self):
         pass
