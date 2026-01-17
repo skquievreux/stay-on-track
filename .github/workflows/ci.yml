@@ -53,7 +53,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: StayOnTrack-Installer
-        path: Output/StayOnTrack_Setup.exe
+        path: Output/StayOnTrack_Setup*.exe
 
   # Semantic Release Job - DISABLED
   # Requires additional GitHub permissions configuration
