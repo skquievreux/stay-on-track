@@ -31,6 +31,7 @@ mypy = "^1.0.0"
 
 # Linting (for CI/CD)
 pylint = "^3.0.0"
+dill = "^0.3.0"  # Required by pylint for parallel processing
 
 [tool.poetry.group.build.dependencies]
 # Build Tools
