@@ -1,0 +1,12 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: stay-on-track
+  description: |
+    Aufgabenmanagement: Alle 15 Minuten erscheint ein Trigger und fragt dich, was du getan hast.
+  annotations:
+    github.com/project-slug: skquievreux/stay-on-track
+spec:
+  type: library
+  lifecycle: experimental
+  owner: guests
