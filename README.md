@@ -32,19 +32,28 @@
 
 ### Manual Installation
 
+**Recommended: Poetry (Modern)**
 ```bash
 # Clone repository
 git clone https://github.com/YOUR_USERNAME/Stay-On-Track.git
 cd Stay-On-Track
 
-# Create virtual environment
-python -m venv venv
-.\venv\Scripts\Activate.ps1
+# Install Poetry
+pipx install poetry
 
 # Install dependencies
-pip install -r requirements.txt
+poetry install
 
 # Run application
+poetry run python src/main.py
+```
+
+**Legacy: pip (Deprecated)**
+```bash
+# ⚠️ DEPRECATED - Use Poetry instead
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 python src/main.py
 ```
 
@@ -210,15 +219,23 @@ Stay-On-Track/
 
 ### Building from Source
 
+**Poetry (Recommended):**
 ```bash
 # Install dependencies
-pip install -r requirements.txt
+poetry install
 
 # Build executable
-pyinstaller build.spec
+poetry run pyinstaller build.spec
 
 # Create installer (requires Inno Setup)
 iscc setup_script.iss
+```
+
+**Legacy (Deprecated):**
+```bash
+# ⚠️ Use Poetry instead
+pip install -r requirements.txt
+pyinstaller build.spec
 ```
 
 ### Running Tests
