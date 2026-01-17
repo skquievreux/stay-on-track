@@ -1,3 +1,3 @@
-__version__ = "1.2.1"
+__version__ = "1.3.0"
 __build_date__ = "%Y-%m-%d"
 __app_name__ = "Stay On Track"

@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/skquievreux/stay-on-track/compare/v1.2.1...v1.3.0) (2026-01-17)
+
+
+### Features
+
+* **ci:** automatically upload installer to GitHub Releases ([92f7e81](https://github.com/skquievreux/stay-on-track/commit/92f7e818460db165893f8923a322246b752d5158))
+
 ## [1.2.1](https://github.com/skquievreux/stay-on-track/compare/v1.2.0...v1.2.1) (2026-01-17)
 
 
