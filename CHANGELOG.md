@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/skquievreux/stay-on-track/compare/v1.3.0...v1.3.1) (2026-01-17)
+
+
+### Bug Fixes
+
+* **ci:** use wildcard pattern for installer upload ([4d08b39](https://github.com/skquievreux/stay-on-track/commit/4d08b39dff3ada9bc99078e62ede5cdc86966968))
+
 # [1.3.0](https://github.com/skquievreux/stay-on-track/compare/v1.2.1...v1.3.0) (2026-01-17)
 
 
