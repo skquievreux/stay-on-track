@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/skquievreux/stay-on-track/compare/v1.2.0...v1.2.1) (2026-01-17)
+
+
+### Bug Fixes
+
+* **ci:** fix artifact upload path using wildcard ([cf6f348](https://github.com/skquievreux/stay-on-track/commit/cf6f348cbc5faec0aa9fc028d4cc22fc0bf1631f))
+
 # [1.2.0](https://github.com/skquievreux/stay-on-track/compare/v1.1.0...v1.2.0) (2026-01-17)
 
 
