@@ -87,4 +87,65 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
 
+  publish-assets:
+    needs: release
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Get Version
+        id: version
+        shell: powershell
+        run: |
+          $ver = Get-Content version.txt | Select-String "Number="
+          $v = $ver.ToString().Split("=")[1].Trim()
+          echo "VERSION=$v" >> $env:GITHUB_OUTPUT
+          echo "Detected Version: $v"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Poetry
+        run: |
+          pipx install poetry
+          poetry --version
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Build with PyInstaller
+        run: poetry run pyinstaller build.spec
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y
+
+      - name: Compile Installer
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" setup_script.iss'
+
+      - name: Calculate SHA256
+        id: sha256
+        run: |
+          $hash = (Get-FileHash -Path "Output\StayOnTrack_Setup_v*.exe" -Algorithm SHA256).Hash
+          echo "INSTALLER_SHA256=$hash" >> $env:GITHUB_OUTPUT
+          echo "SHA256: $hash"
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          files: Output/StayOnTrack_Setup_v*.exe
+          body: |
+            ### SHA256 Checksum
+            ```
+            ${{ steps.sha256.outputs.INSTALLER_SHA256 }}
+            ```
+            append_body: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
