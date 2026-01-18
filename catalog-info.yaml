@@ -6,6 +6,7 @@ metadata:
     Aufgabenmanagement: Alle 15 Minuten erscheint ein Trigger und fragt dich, was du getan hast.
   annotations:
     github.com/project-slug: skquievreux/stay-on-track
+    backstage.io/techdocs-ref: dir:.
 spec:
   type: library
   lifecycle: experimental
