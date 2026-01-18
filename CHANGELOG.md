@@ -1,3 +1,15 @@
+# [1.4.0](https://github.com/skquievreux/stay-on-track/compare/v1.3.1...v1.4.0) (2026-01-18)
+
+
+### Bug Fixes
+
+* prevent multiple instances application-wide and streamline installer process ([e70690f](https://github.com/skquievreux/stay-on-track/commit/e70690fb4573467ff44c141ebc91137ebe7c9151))
+
+
+### Features
+
+* Automate version injection into Inno Setup installer and Python `version.py` via semantic-release. ([f4acd9e](https://github.com/skquievreux/stay-on-track/commit/f4acd9e7146734bd591775b0c402232eda8469ca))
+
 ## [1.3.1](https://github.com/skquievreux/stay-on-track/compare/v1.3.0...v1.3.1) (2026-01-17)
 
 
