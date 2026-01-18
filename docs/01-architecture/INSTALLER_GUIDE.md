@@ -151,6 +151,7 @@ pyinstaller build.spec --clean
 [Setup]
 AppName=My Application
 AppVersion=1.0.0
+AppId={{YOUR-GUID-HERE}}
 AppPublisher=Your Name
 AppPublisherURL=https://github.com/yourname/myapp
 DefaultDirName={autopf}\MyApp
@@ -162,6 +163,10 @@ SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=lowest
 ArchitecturesInstallIn64BitMode=x64
+; Prevent multiple instances
+AppMutex=Global\MyAppMutex
+; Ensure uninstall key is created
+CreateUninstallRegKey=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -181,6 +186,39 @@ Name: "{userstartup}\My Application"; Filename: "{app}\MyApp.exe"; Tasks: startu
 
 [Run]
 Filename: "{app}\MyApp.exe"; Description: "{cm:LaunchProgram,My Application}"; Flags: nowait postinstall skipifsilent
+
+[Code]
+// Helper to get registry key for uninstall
+function GetUninstallString(): String;
+var
+  sUnInstPath: String;
+  sUnInstPathKey: String;
+begin
+  sUnInstPath := '';
+  sUnInstPathKey := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#AppStateId}_is1';
+  // Note: Ensure AppStateId or AppId is used correctly here.
+  
+  if RegQueryStringValue(HKLM, sUnInstPathKey, 'UninstallString', sUnInstPath) then
+    Result := sUnInstPath
+  else if RegQueryStringValue(HKCU, sUnInstPathKey, 'UninstallString', sUnInstPath) then
+    Result := sUnInstPath;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ResultCode: Integer;
+  UninstallString: String;
+begin
+  if (CurStep = ssInstall) then
+  begin
+    UninstallString := GetUninstallString();
+    if (UninstallString <> '') then
+    begin
+      UninstallString := RemoveQuotes(UninstallString);
+      Exec(UninstallString, '/SILENT /NORESTART /SUPPRESSMSGBOXES', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    end;
+  end;
+end;
 ```
 
 ### 3.2 Lokal kompilieren

@@ -156,6 +156,17 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
         sys.exit()
 
 if __name__ == "__main__":
+    import ctypes
+    
+    # Create a named mutex to ensure only one instance runs
+    mutex_name = "Global\\StayOnTrackAppMutex"
+    mutex = ctypes.windll.kernel32.CreateMutexW(None, False, mutex_name)
+    last_error = ctypes.windll.kernel32.GetLastError()
+    
+    if last_error == 183:  # ERROR_ALREADY_EXISTS
+        print("Stay On Track is already running.")
+        sys.exit(0)
+
     ctk.set_appearance_mode("System")
     ctk.set_default_color_theme("blue")
     app = StayOnTrackApp()

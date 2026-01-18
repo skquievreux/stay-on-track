@@ -55,9 +55,8 @@ jobs:
         name: StayOnTrack-Installer
         path: Output/StayOnTrack_Setup*.exe
 
-  # Semantic Release Job - DISABLED
-  # Requires additional GitHub permissions configuration
-  # Can be enabled later by uncommenting this section
+  # Semantic Release Job
+  # Requires GitHub permissions: contents: write
   #
   release:
     needs: build
@@ -87,17 +86,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
-      
-      - name: Download Installer Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: StayOnTrack-Installer
-          path: ./installer
-      
-      - name: Upload Installer to Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION=$(grep "Number=" version.txt | cut -d'=' -f2)
-          gh release upload v${VERSION} ./installer/*.exe --clobber
+
 

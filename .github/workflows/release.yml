@@ -17,7 +17,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          # cache: 'poetry'  # Disabled until poetry.lock is committed
 
       - name: Install Poetry
         run: |
@@ -26,6 +25,12 @@ jobs:
 
       - name: Install dependencies
         run: poetry install
+
+      - name: Create Version File
+        run: |
+          $version = $env:GITHUB_REF -replace "refs/tags/v", ""
+          echo "Number=$version" > version.txt
+          echo "Creating build for version $version"
 
       - name: Analysing the code with pylint
         run: |
@@ -46,35 +51,19 @@ jobs:
       - name: Calculate SHA256
         id: sha256
         run: |
-          $hash = (Get-FileHash -Path "Output\StayOnTrack_Setup.exe" -Algorithm SHA256).Hash
+          $hash = (Get-FileHash -Path "Output\StayOnTrack_Setup_v*.exe" -Algorithm SHA256).Hash
           echo "INSTALLER_SHA256=$hash" >> $env:GITHUB_OUTPUT
           echo "SHA256: $hash"
 
-      - name: Create Release
+      - name: Upload Binary to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: Output/StayOnTrack_Setup.exe
-          generate_release_notes: true
+          files: Output/StayOnTrack_Setup_v*.exe
           body: |
-            ## Installation
-            
-            Download `StayOnTrack_Setup.exe` and run it.
-            
-            ### Alternative Installation Methods
-            
-            **Winget:**
-            ```powershell
-            winget install Quievreux.StayOnTrack
-            ```
-            
-            **Chocolatey:**
-            ```powershell
-            choco install stayontrack
-            ```
-            
             ### SHA256 Checksum
             ```
             ${{ steps.sha256.outputs.INSTALLER_SHA256 }}
             ```
+            append_body: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

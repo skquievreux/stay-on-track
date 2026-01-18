@@ -10,10 +10,11 @@
 #define MyAppURL "https://github.com/skquievreux/stay-on-track"
 #define MyAppExeName "StayOnTrack.exe"
 #define MyAppContact "https://quievreux.com"
+#define MyAppId "{{A3D8F2A1-8E4B-4E3F-9C1D-7B5A6F2C1D0E}"
 
 [Setup]
 ; Unique GUID - DO NOT CHANGE (ensures proper upgrades)
-AppId={{A3D8F2A1-8E4B-4E3F-9C1D-7B5A6F2C1D0E}}
+AppId={#MyAppId}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion}
@@ -41,6 +42,8 @@ WizardStyle=modern
 ; Automatically uninstall previous version
 Uninstallable=yes
 CreateUninstallRegKey=yes
+; Prevent multiple instances during install
+AppMutex=Global\StayOnTrackAppMutex
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -64,3 +67,36 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; Flags: nowait postinstall skipifsilent
+
+[Code]
+// Helper to get registry key for uninstall
+function GetUninstallString(): String;
+var
+  sUnInstPath: String;
+  sUnInstPathKey: String;
+begin
+  sUnInstPath := '';
+  // The key is usually AppId + '_is1'
+  sUnInstPathKey := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1';
+  
+  if RegQueryStringValue(HKLM, sUnInstPathKey, 'UninstallString', sUnInstPath) then
+    Result := sUnInstPath
+  else if RegQueryStringValue(HKCU, sUnInstPathKey, 'UninstallString', sUnInstPath) then
+    Result := sUnInstPath;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ResultCode: Integer;
+  UninstallString: String;
+begin
+  if (CurStep = ssInstall) then
+  begin
+    UninstallString := GetUninstallString();
+    if (UninstallString <> '') then
+    begin
+      UninstallString := RemoveQuotes(UninstallString);
+      Exec(UninstallString, '/SILENT /NORESTART /SUPPRESSMSGBOXES', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    end;
+  end;
+end;
