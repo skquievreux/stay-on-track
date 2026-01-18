@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/skquievreux/stay-on-track/compare/v1.4.0...v1.4.1) (2026-01-18)
+
+
+### Bug Fixes
+
+* resolve module import error by using absolute path and add EXE metadata ([4df2f87](https://github.com/skquievreux/stay-on-track/commit/4df2f87986d16143e0d96f2afa2ceff1983e72b3))
+
 # [1.4.0](https://github.com/skquievreux/stay-on-track/compare/v1.3.1...v1.4.0) (2026-01-18)
 
 
