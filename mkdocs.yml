@@ -6,16 +6,26 @@ nav:
   - Home: index.md
   - Architecture:
     - Overview: 01-architecture/index.md
+    - Installer_Guide: docs/01-architecture/INSTALLER_GUIDE.md
+    - Overview: docs/01-architecture/OVERVIEW.md
     - Decisions: 01-architecture/decisions/
   - Implementation:
     - Overview: 02-implementation/index.md
+    - Analytics: docs/02-implementation/analytics.md
+    - Best_Practices: docs/02-implementation/BEST_PRACTICES.md
+    - Code_Signing: docs/02-implementation/CODE_SIGNING.md
+    - Distribution: docs/02-implementation/DISTRIBUTION.md
+    - User Guide: docs/02-implementation/user-guide.md
   - Operations:
     - Overview: 03-operations/index.md
+    - Troubleshooting: docs/03-operations/troubleshooting.md
   - Business:
     - Overview: 04-business/index.md
+
     - History: 04-business/history/
   - Reference:
     - Overview: 05-reference/index.md
+
 
 plugins:
   - techdocs-core
