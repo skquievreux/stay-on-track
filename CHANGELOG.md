@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/skquievreux/stay-on-track/compare/v1.4.1...v1.4.2) (2026-01-18)
+
+
+### Bug Fixes
+
+* combine release and build steps in single workflow to ensure asset upload ([61303b9](https://github.com/skquievreux/stay-on-track/commit/61303b9c82272f302b1727a393b8f1c27be63b2c))
+
 ## [1.4.1](https://github.com/skquievreux/stay-on-track/compare/v1.4.0...v1.4.1) (2026-01-18)
 
 
