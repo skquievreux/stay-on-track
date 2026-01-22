@@ -13,6 +13,7 @@ from pystray import MenuItem as menu_item
 from analytics_ui import AnalyticsWindow
 from config import ConfigManager
 from goals.gamification import GamificationManager
+from goals.daily_focus_ui import DailyFocusWindow
 from goals.goal_manager import GoalManager
 from goals.goal_setup_ui import GoalSetupWindow
 from scheduler import Scheduler
@@ -55,7 +56,7 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
         self._check_first_time_setup()
 
         # Scheduler
-        self.scheduler = Scheduler(self.config_manager, self.trigger_popup)
+        self.scheduler = Scheduler(self.config_manager, self.trigger_popup, self.goal_manager)
         self.scheduler.start()
 
         # State
@@ -121,6 +122,25 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
         # Could show a welcome message or tutorial here
         pass
 
+    def _show_daily_focus(self):
+        """Show the daily focus selection window."""
+        if self.goal_manager.has_any_goals():
+            daily_focus_window = DailyFocusWindow(
+                self.goal_manager,
+                self.gamification_manager,
+                on_complete_callback=self._daily_focus_complete,
+            )
+            daily_focus_window.lift()
+            daily_focus_window.focus_force()
+        else:
+            # No goals available, skip to activity popup
+            self._show_popup_internal()
+
+    def _daily_focus_complete(self):
+        """Handle completion of daily focus selection."""
+        # Now show the activity popup
+        self._show_popup_internal()
+
     def _show_migration_notification(self, count):
         """Show a notification about successful migration."""
         try:
@@ -163,7 +183,7 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
                 self.icon.update_menu()
             time.sleep(5)
 
-    def trigger_popup(self):
+    def trigger_popup(self, needs_daily_focus=False):
         """Trigger the activity logging popup."""
         try:
             import winsound  # pylint: disable=import-outside-toplevel
@@ -171,7 +191,11 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
             winsound.MessageBeep(winsound.MB_ICONASTERISK)
         except ImportError:
             pass
-        self.after(0, self._show_popup_internal)
+
+        if needs_daily_focus:
+            self.after(0, self._show_daily_focus)
+        else:
+            self.after(0, self._show_popup_internal)
 
     def _show_popup_internal(self):
         """Show the popup window (internal method)."""

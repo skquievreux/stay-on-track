@@ -4,12 +4,14 @@ import time
 
 
 class Scheduler:
-    def __init__(self, config_manager, trigger_callback):
+    def __init__(self, config_manager, trigger_callback, goal_manager=None):
         self.config_manager = config_manager
         self.trigger_callback = trigger_callback
+        self.goal_manager = goal_manager
         self.running = False
         self.next_run_time = None
         self.thread = None
+        self.daily_focus_shown_today = False
 
     def start(self):
         if self.running:
@@ -69,9 +71,34 @@ class Scheduler:
 
         if self._is_time_in_range(start_time, end_time):
             print(f"Time {current_time_str} is in range {start_time}-{end_time}. Triggering...")
-            self.trigger_callback()
+
+            # Check if we need to show daily focus first
+            needs_daily_focus = self._should_show_daily_focus()
+
+            self.trigger_callback(needs_daily_focus=needs_daily_focus)
         else:
             print(f"Time {current_time_str} is OUT of range {start_time}-{end_time}. Skipping.")
+
+    def _should_show_daily_focus(self):
+        """Check if daily focus should be shown before activity popup."""
+        if not self.goal_manager:
+            return False
+
+        # Check if it's a new day
+        today = datetime.date.today()
+        if not hasattr(self, "_last_daily_check") or self._last_daily_check != today:
+            self._last_daily_check = today
+            self.daily_focus_shown_today = False
+
+        # Only show once per day, and only if no daily focus is set
+        if not self.daily_focus_shown_today and not self.goal_manager.has_daily_focus_today():
+            # Check if it's morning (before 12 PM) - daily focus is primarily for morning
+            current_hour = datetime.datetime.now().hour
+            if current_hour < 12:  # Before noon
+                self.daily_focus_shown_today = True
+                return True
+
+        return False
 
     def _is_time_in_range(self, start, end):
         now = datetime.datetime.now().time()
