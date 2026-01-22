@@ -67,10 +67,10 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: true  # Required for semantic-release to push tags
-      
-       - uses: actions/setup-node@v4
-         with:
-           node-version: '22'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
       - uses: actions/setup-python@v5
         with:
