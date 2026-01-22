@@ -1,14 +1,13 @@
-
 import json
 import os
 from pathlib import Path
-
 
 DEFAULT_CONFIG = {
     "start_time": "09:00",
     "end_time": "17:00",
     "output_dir": str(Path.home() / "Documents" / "StayOnTrack"),
 }
+
 
 class ConfigManager:
     def __init__(self, config_filename="config.json"):
@@ -27,7 +26,7 @@ class ConfigManager:
         if not self.config_file.exists():
             return DEFAULT_CONFIG.copy()
         try:
-            with open(self.config_file, "r", encoding="utf-8") as f:
+            with open(self.config_file, encoding="utf-8") as f:
                 loaded = json.load(f)
                 # Merge with default to ensure all keys exist
                 return {**DEFAULT_CONFIG, **loaded}
