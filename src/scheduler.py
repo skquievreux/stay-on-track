@@ -75,7 +75,12 @@ class Scheduler:
             # Check if we need to show daily focus first
             needs_daily_focus = self._should_show_daily_focus()
 
-            self.trigger_callback(needs_daily_focus=needs_daily_focus)
+            # Check if we should show end-of-day summary
+            should_show_summary = self._should_show_day_summary()
+
+            self.trigger_callback(
+                needs_daily_focus=needs_daily_focus, should_show_summary=should_show_summary
+            )
         else:
             print(f"Time {current_time_str} is OUT of range {start_time}-{end_time}. Skipping.")
 
@@ -97,6 +102,38 @@ class Scheduler:
             if current_hour < 12:  # Before noon
                 self.daily_focus_shown_today = True
                 return True
+
+        return False
+
+    def _should_show_day_summary(self):
+        """Check if end-of-day summary should be shown."""
+        if not self.goal_manager:
+            return False
+
+        # Check if it's after end time and we haven't shown summary today
+        current_time = datetime.datetime.now().time()
+        end_time_str = self.config_manager.get("end_time")
+
+        try:
+            end_hour, end_minute = map(int, end_time_str.split(":"))
+            end_time = datetime.time(end_hour, end_minute)
+
+            # Only show if current time is after end time
+            if current_time <= end_time:
+                return False
+
+            # Check if we already showed summary today
+            today = datetime.date.today()
+            if not hasattr(self, "_summary_shown_date") or self._summary_shown_date != today:
+                self._summary_shown_date = today
+                self._summary_shown_today = False
+
+            if not self._summary_shown_today:
+                self._summary_shown_today = True
+                return True
+
+        except (ValueError, AttributeError):
+            pass
 
         return False
 

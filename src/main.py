@@ -14,6 +14,7 @@ from analytics_ui import AnalyticsWindow
 from config import ConfigManager
 from goals.gamification import GamificationManager
 from goals.daily_focus_ui import DailyFocusWindow
+from goals.day_summary_ui import DaySummaryWindow
 from goals.goal_manager import GoalManager
 from goals.goal_setup_ui import GoalSetupWindow
 from scheduler import Scheduler
@@ -141,6 +142,22 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
         # Now show the activity popup
         self._show_popup_internal()
 
+    def _show_day_summary(self):
+        """Show the end-of-day summary window."""
+        day_summary_window = DaySummaryWindow(
+            self.goal_manager,
+            self.gamification_manager,
+            self.storage_manager,
+            on_close_callback=self._day_summary_closed,
+        )
+        day_summary_window.lift()
+        day_summary_window.focus_force()
+
+    def _day_summary_closed(self):
+        """Handle day summary window close."""
+        # Could show a final message or just continue
+        pass
+
     def _show_migration_notification(self, count):
         """Show a notification about successful migration."""
         try:
@@ -183,7 +200,7 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
                 self.icon.update_menu()
             time.sleep(5)
 
-    def trigger_popup(self, needs_daily_focus=False):
+    def trigger_popup(self, needs_daily_focus=False, should_show_summary=False):
         """Trigger the activity logging popup."""
         try:
             import winsound  # pylint: disable=import-outside-toplevel
@@ -192,7 +209,9 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
         except ImportError:
             pass
 
-        if needs_daily_focus:
+        if should_show_summary:
+            self.after(0, self._show_day_summary)
+        elif needs_daily_focus:
             self.after(0, self._show_daily_focus)
         else:
             self.after(0, self._show_popup_internal)
