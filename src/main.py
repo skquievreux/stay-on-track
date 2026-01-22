@@ -12,6 +12,8 @@ from pystray import MenuItem as menu_item
 
 from analytics_ui import AnalyticsWindow
 from config import ConfigManager
+from goals.gamification import GamificationManager
+from goals.goal_manager import GoalManager
 from scheduler import Scheduler
 from storage import StorageManager
 from ui import HistoryWindow, InputWindow, SettingsWindow
@@ -42,6 +44,8 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
         # Managers
         self.config_manager = ConfigManager()
         self.storage_manager = StorageManager(self.config_manager.get("output_dir"))
+        self.goal_manager = GoalManager(self.storage_manager)
+        self.gamification_manager = GamificationManager(self.storage_manager)
 
         # Check for and perform CSV migration on first launch
         self._check_migration()
@@ -150,7 +154,10 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
         """Show the popup window (internal method)."""
         if self.popup_window is None or not self.popup_window.winfo_exists():
             self.popup_window = InputWindow(
-                self.storage_manager, on_close_callback=self._popup_closed
+                self.storage_manager,
+                self.goal_manager,
+                self.gamification_manager,
+                on_close_callback=self._popup_closed,
             )
             self.popup_window.lift()
             self.popup_window.focus_force()
