@@ -1,7 +1,7 @@
-
-import time
 import datetime
 import threading
+import time
+
 
 class Scheduler:
     def __init__(self, config_manager, trigger_callback):
@@ -35,11 +35,11 @@ class Scheduler:
 
         next_run = now.replace(minute=next_minutes, second=0, microsecond=0)
 
-        if next_minutes == 0: # Rounded up to next hour
+        if next_minutes == 0:  # Rounded up to next hour
             next_run += datetime.timedelta(hours=1)
             next_run = next_run.replace(minute=0)
 
-        if next_run <= now: # Should not happen with logic above but safe guard
+        if next_run <= now:  # Should not happen with logic above but safe guard
             next_run += datetime.timedelta(minutes=15)
 
         return next_run
@@ -51,7 +51,7 @@ class Scheduler:
 
             # Wait loop
             while self.running and datetime.datetime.now() < self.next_run_time:
-                time.sleep(1) # Check every second for stop signal
+                time.sleep(1)  # Check every second for stop signal
 
             if not self.running:
                 break
