@@ -8,205 +8,328 @@ import customtkinter as ctk
 
 
 class InputWindow(ctk.CTkToplevel):
-    """Window for logging user activity entries with optional effectiveness voting."""
+    """3-step activity logging window with goal assignment."""
 
-    def __init__(self, storage_manager, on_close_callback=None):
+    def __init__(self, storage_manager, goal_manager, gamification_manager, on_close_callback=None):
         super().__init__()
         self.storage_manager = storage_manager
+        self.goal_manager = goal_manager
+        self.gamification_manager = gamification_manager
         self.on_close_callback = on_close_callback
+
+        # State management
+        self.current_step = 1
+        self.activity_text = ""
         self.selected_effectiveness = None
+        self.selected_goal_id = None
+        self.entry_id = None  # Will be set after saving activity
 
-        # Check if extended mode is needed (30+ min since last entry)
-        self.show_extended = self._check_extended_mode()
-        self.recent_entries = []
-
-        if self.show_extended:
-            self.recent_entries = storage_manager.get_recent_entries(limit=2)
+        # UI elements
+        self.main_frame = None
+        self.title_label = None
+        self.content_frame = None
 
         # Configure window
         self.title("Stay On Track - Log Activity")
-        window_height = 350 if self.show_extended else 250
-        self.geometry(f"450x{window_height}")
+        self.geometry("450x300")
         self.attributes("-topmost", True)
         self.resizable(False, False)
 
-        # Build UI
-        if self.show_extended:
-            self._create_extended_ui()
-        else:
-            self._create_standard_ui()
+        # Initialize UI
+        self._create_main_ui()
+        self._show_step_1()
 
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
-    def _check_extended_mode(self):
-        """Check if 30+ minutes have passed since last entry."""
-        last_time = self.storage_manager.get_last_entry_time()
-        if last_time is None:
-            return False
+    def _create_main_ui(self):
+        """Create the main UI structure."""
+        # Title
+        self.title_label = ctk.CTkLabel(self, text="", font=("Arial", 16, "bold"))
+        self.title_label.pack(pady=(20, 10))
 
-        minutes_since = (datetime.datetime.now() - last_time).total_seconds() / 60
-        return minutes_since > 30
+        # Content frame
+        self.content_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.content_frame.pack(pady=10, padx=20, fill="both", expand=True)
 
-    def _create_standard_ui(self):
-        """Create the standard input UI."""
-        # Label
-        self.label = ctk.CTkLabel(self, text="What have you worked on?", font=("Arial", 14))
-        self.label.pack(pady=10)
+        # Navigation buttons frame
+        self.nav_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.nav_frame.pack(pady=(0, 20))
 
-        # Entry
-        self.entry = ctk.CTkEntry(self, width=350, height=35)
-        self.entry.pack(pady=10)
-        self.entry.bind("<Return>", self.submit)
-        self.entry.focus_set()
+    def _clear_content_frame(self):
+        """Clear all widgets from content frame."""
+        for widget in self.content_frame.winfo_children():
+            widget.destroy()
 
-        # Effectiveness section
-        self._create_effectiveness_section()
+    def _clear_nav_frame(self):
+        """Clear all widgets from navigation frame."""
+        for widget in self.nav_frame.winfo_children():
+            widget.destroy()
 
-        # Buttons
-        self.btn_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.btn_frame.pack(pady=15)
+    # =========================================================================
+    # Step 1: Activity Input
+    # =========================================================================
 
-        self.submit_btn = ctk.CTkButton(
-            self.btn_frame, text="Save", command=self.submit, width=100, height=35
+    def _show_step_1(self):
+        """Show step 1: Activity text input."""
+        self.current_step = 1
+        self.title_label.configure(text="📝 What have you been working on?")
+
+        self._clear_content_frame()
+        self._clear_nav_frame()
+
+        # Activity input
+        self.activity_entry = ctk.CTkEntry(
+            self.content_frame,
+            width=350,
+            height=40,
+            placeholder_text="Describe your activity...",
+            font=("Arial", 12),
         )
-        self.submit_btn.pack(side="left", padx=5)
+        self.activity_entry.pack(pady=(10, 15))
+        self.activity_entry.focus_set()
 
-    def _create_extended_ui(self):
-        """Create the extended input UI with recent entries and effectiveness voting."""
-        # Warning label
-        warning_frame = ctk.CTkFrame(self, fg_color="#FFF3CD", corner_radius=8)
-        warning_frame.pack(pady=10, padx=15, fill="x")
-
-        warning_label = ctk.CTkLabel(
-            warning_frame,
-            text="30+ min since last entry!",
-            font=("Arial", 12, "bold"),
-            text_color="#856404",
-        )
-        warning_label.pack(pady=8)
-
-        # Recent entries section
-        if self.recent_entries:
-            recent_frame = ctk.CTkFrame(self, fg_color="transparent")
-            recent_frame.pack(pady=5, padx=15, fill="x")
-
+        # Recent activities suggestions
+        recent_entries = self.storage_manager.get_recent_entries(limit=3)
+        if recent_entries:
             recent_label = ctk.CTkLabel(
-                recent_frame, text="Recent entries (click to use):", font=("Arial", 11)
+                self.content_frame, text="Quick select from recent:", font=("Arial", 11, "bold")
             )
-            recent_label.pack(anchor="w", pady=(0, 5))
+            recent_label.pack(pady=(0, 8))
 
-            for entry in self.recent_entries:
+            for entry in recent_entries:
                 timestamp = entry["timestamp"].strftime("%H:%M")
                 activity = entry["activity"]
-                # Truncate long activities
                 display_text = (
-                    f"{timestamp} - {activity[:40]}..."
-                    if len(activity) > 40
+                    f"{timestamp} - {activity[:35]}..."
+                    if len(activity) > 35
                     else f"{timestamp} - {activity}"
                 )
 
-                entry_btn = ctk.CTkButton(
-                    recent_frame,
+                recent_btn = ctk.CTkButton(
+                    self.content_frame,
                     text=display_text,
-                    font=("Arial", 11),
-                    fg_color="#E8E8E8",
+                    font=("Arial", 10),
+                    fg_color="#F5F5F5",
                     text_color="#333333",
-                    hover_color="#D0D0D0",
+                    hover_color="#E0E0E0",
+                    height=32,
                     anchor="w",
-                    height=30,
-                    command=lambda a=activity: self._fill_entry(a),
+                    command=lambda a=activity: self._use_recent_activity(a),
                 )
-                entry_btn.pack(fill="x", pady=2)
+                recent_btn.pack(fill="x", pady=2)
 
-        # Main input label
-        self.label = ctk.CTkLabel(self, text="What have you worked on?", font=("Arial", 14))
-        self.label.pack(pady=(15, 5))
+        # Navigation
+        self._create_step_navigation("Next →", self._next_from_step_1)
 
-        # Entry field
-        self.entry = ctk.CTkEntry(self, width=350, height=35)
-        self.entry.pack(pady=5)
-        self.entry.bind("<Return>", self.submit)
-        self.entry.focus_set()
+    def _use_recent_activity(self, activity):
+        """Use a recent activity as input."""
+        self.activity_entry.delete(0, "end")
+        self.activity_entry.insert(0, activity)
 
-        # Effectiveness section
-        self._create_effectiveness_section()
+    def _next_from_step_1(self):
+        """Handle next button from step 1."""
+        self.activity_text = self.activity_entry.get().strip()
+        if not self.activity_text:
+            # Show error briefly
+            self.activity_entry.configure(border_color="red")
+            self.after(
+                1000, lambda: self.activity_entry.configure(border_color=["#979DA2", "#565B5E"])
+            )
+            return
 
-        # Buttons
-        self.btn_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.btn_frame.pack(pady=15)
+        self._show_step_2()
 
-        self.submit_btn = ctk.CTkButton(
-            self.btn_frame, text="Save", command=self.submit, width=100, height=35
+    # =========================================================================
+    # Step 2: Effectiveness Rating
+    # =========================================================================
+
+    def _show_step_2(self):
+        """Show step 2: Effectiveness rating."""
+        self.current_step = 2
+        self.title_label.configure(text=f"📝 '{self.activity_text[:30]}...'")
+
+        self._clear_content_frame()
+        self._clear_nav_frame()
+
+        # Question
+        question_label = ctk.CTkLabel(
+            self.content_frame, text="How effective was this activity?", font=("Arial", 14)
         )
-        self.submit_btn.pack(side="left", padx=5)
+        question_label.pack(pady=(20, 15))
 
-    def _create_effectiveness_section(self):
-        """Create the effectiveness voting buttons."""
-        eff_frame = ctk.CTkFrame(self, fg_color="transparent")
-        eff_frame.pack(pady=10)
+        # Effectiveness buttons
+        btn_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
+        btn_frame.pack(pady=10)
 
-        eff_label = ctk.CTkLabel(eff_frame, text="How effective? (optional)", font=("Arial", 11))
-        eff_label.pack(pady=(0, 8))
-
-        btn_container = ctk.CTkFrame(eff_frame, fg_color="transparent")
-        btn_container.pack()
-
-        # Good button
         self.btn_good = ctk.CTkButton(
-            btn_container,
-            text="Good",
-            width=100,
-            height=35,
+            btn_frame,
+            text="😊 Good",
+            width=120,
+            height=45,
+            font=("Arial", 12, "bold"),
             fg_color="#E8F5E9",
             text_color="#2E7D32",
             hover_color="#C8E6C9",
             command=lambda: self._select_effectiveness("good"),
         )
-        self.btn_good.pack(side="left", padx=10)
+        self.btn_good.pack(side="left", padx=15)
 
-        # Bad button
         self.btn_bad = ctk.CTkButton(
-            btn_container,
-            text="Bad",
-            width=100,
-            height=35,
+            btn_frame,
+            text="😞 Bad",
+            width=120,
+            height=45,
+            font=("Arial", 12, "bold"),
             fg_color="#FFEBEE",
             text_color="#C62828",
             hover_color="#FFCDD2",
             command=lambda: self._select_effectiveness("bad"),
         )
-        self.btn_bad.pack(side="left", padx=10)
+        self.btn_bad.pack(side="left", padx=15)
+
+        # Skip option
+        skip_label = ctk.CTkLabel(
+            self.content_frame, text="Or skip this step", font=("Arial", 10), text_color="gray"
+        )
+        skip_label.pack(pady=(10, 0))
+
+        # Navigation
+        self._create_step_navigation("← Back", self._show_step_1, "Next →", self._next_from_step_2)
 
     def _select_effectiveness(self, value):
         """Handle effectiveness button selection."""
-        # Toggle selection
-        if self.selected_effectiveness == value:
-            self.selected_effectiveness = None
-            # Reset button colors
-            self.btn_good.configure(fg_color="#E8F5E9")
-            self.btn_bad.configure(fg_color="#FFEBEE")
+        self.selected_effectiveness = value
+
+        # Update button colors
+        if value == "good":
+            self.btn_good.configure(fg_color="#4CAF50", text_color="white")
+            self.btn_bad.configure(fg_color="#FFEBEE", text_color="#C62828")
         else:
-            self.selected_effectiveness = value
-            # Update button colors to show selection
-            if value == "good":
-                self.btn_good.configure(fg_color="#4CAF50")
-                self.btn_bad.configure(fg_color="#FFEBEE")
+            self.btn_good.configure(fg_color="#E8F5E9", text_color="#2E7D32")
+            self.btn_bad.configure(fg_color="#EF5350", text_color="white")
+
+    def _next_from_step_2(self):
+        """Handle next button from step 2."""
+        self._show_step_3()
+
+    # =========================================================================
+    # Step 3: Goal Assignment
+    # =========================================================================
+
+    def _show_step_3(self):
+        """Show step 3: Goal assignment."""
+        self.current_step = 3
+        self.title_label.configure(text=f"🎯 '{self.activity_text[:25]}...'")
+
+        self._clear_content_frame()
+        self._clear_nav_frame()
+
+        # Question
+        question_label = ctk.CTkLabel(
+            self.content_frame, text="Which goal did this move forward?", font=("Arial", 14)
+        )
+        question_label.pack(pady=(20, 15))
+
+        # Get daily focus goals
+        daily_goals = self.goal_manager.get_daily_focus_today()
+
+        # Goal selection
+        self.goal_var = ctk.StringVar(value="none")
+
+        if daily_goals:
+            # Show daily goals
+            for _i, goal in enumerate(daily_goals):
+                goal_name = goal["goal_name"] or goal["adhoc_name"]
+                radio_btn = ctk.CTkRadioButton(
+                    self.content_frame,
+                    text=goal_name,
+                    variable=self.goal_var,
+                    value=f"goal_{goal['goal_id'] or 'adhoc_' + str(goal['id'])}",
+                    font=("Arial", 11),
+                )
+                radio_btn.pack(anchor="w", pady=3, padx=20)
+        else:
+            # No daily goals set
+            no_goals_label = ctk.CTkLabel(
+                self.content_frame,
+                text="No daily goals set yet.\nSet them in the morning for better tracking!",
+                font=("Arial", 11),
+                text_color="gray",
+            )
+            no_goals_label.pack(pady=10)
+
+        # None option
+        none_radio = ctk.CTkRadioButton(
+            self.content_frame,
+            text="None / Unrelated activity",
+            variable=self.goal_var,
+            value="none",
+            font=("Arial", 11),
+        )
+        none_radio.pack(anchor="w", pady=(10, 5), padx=20)
+
+        # Navigation
+        self._create_step_navigation("← Back", self._show_step_2, "Save ✓", self._save_entry)
+
+    def _save_entry(self):
+        """Save the complete entry and close."""
+        # Parse goal selection
+        goal_value = self.goal_var.get()
+        if goal_value.startswith("goal_"):
+            goal_part = goal_value[5:]  # Remove "goal_" prefix
+            if goal_part.startswith("adhoc_"):
+                # For adhoc goals, we don't link to goal_id (they're not in goals table)
+                self.selected_goal_id = None
             else:
-                self.btn_good.configure(fg_color="#E8F5E9")
-                self.btn_bad.configure(fg_color="#EF5350")
+                try:
+                    self.selected_goal_id = int(goal_part)
+                except ValueError:
+                    self.selected_goal_id = None
+        else:
+            self.selected_goal_id = None
 
-    def _fill_entry(self, activity):
-        """Fill the entry field with a recent activity."""
-        self.entry.delete(0, "end")
-        self.entry.insert(0, activity)
-        self.entry.focus_set()
+        # Save entry
+        self.entry_id = self.storage_manager.save_entry(
+            self.activity_text, self.selected_effectiveness
+        )
 
-    def submit(self, _event=None):
-        """Submit the activity entry and close the window."""
-        comment = self.entry.get().strip()
-        if comment:
-            self.storage_manager.save_entry(comment, self.selected_effectiveness)
+        # Link to goal if selected
+        if self.selected_goal_id is not None:
+            self.goal_manager.link_activity_to_goal(self.entry_id, self.selected_goal_id)
+
+        # Update streak and check achievements
+        self.gamification_manager.update_streak()
+        self.gamification_manager.check_and_unlock_achievements()
+
+        # Close window
         self.on_close()
+
+    # =========================================================================
+    # Navigation Helpers
+    # =========================================================================
+
+    def _create_step_navigation(
+        self, left_text=None, left_command=None, right_text=None, right_command=None
+    ):
+        """Create navigation buttons for steps."""
+        if left_text and left_command:
+            left_btn = ctk.CTkButton(
+                self.nav_frame,
+                text=left_text,
+                width=100,
+                height=35,
+                fg_color="#F5F5F5",
+                text_color="#333333",
+                hover_color="#E0E0E0",
+                command=left_command,
+            )
+            left_btn.pack(side="left", padx=10)
+
+        if right_text and right_command:
+            right_btn = ctk.CTkButton(
+                self.nav_frame, text=right_text, width=100, height=35, command=right_command
+            )
+            right_btn.pack(side="right", padx=10)
 
     def on_close(self):
         """Handle window close event."""

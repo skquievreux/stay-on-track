@@ -12,6 +12,12 @@ from pystray import MenuItem as menu_item
 
 from analytics_ui import AnalyticsWindow
 from config import ConfigManager
+from goals.daily_focus_ui import DailyFocusWindow
+from goals.day_summary_ui import DaySummaryWindow
+from goals.gamification import GamificationManager
+from goals.goal_manage_ui import GoalManageWindow
+from goals.goal_manager import GoalManager
+from goals.goal_setup_ui import GoalSetupWindow
 from scheduler import Scheduler
 from storage import StorageManager
 from ui import HistoryWindow, InputWindow, SettingsWindow
@@ -42,12 +48,17 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
         # Managers
         self.config_manager = ConfigManager()
         self.storage_manager = StorageManager(self.config_manager.get("output_dir"))
+        self.goal_manager = GoalManager(self.storage_manager)
+        self.gamification_manager = GamificationManager(self.storage_manager)
 
         # Check for and perform CSV migration on first launch
         self._check_migration()
 
+        # Check for first-time goal setup
+        self._check_first_time_setup()
+
         # Scheduler
-        self.scheduler = Scheduler(self.config_manager, self.trigger_popup)
+        self.scheduler = Scheduler(self.config_manager, self.trigger_popup, self.goal_manager)
         self.scheduler.start()
 
         # State
@@ -55,6 +66,7 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
         self.settings_window = None
         self.history_window = None
         self.analytics_window = None
+        self.goal_management_window = None
         self.next_run_str = "Calculating..."
 
         # Tray Icon
@@ -73,6 +85,8 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
             menu_item("Log Activity", self.trigger_popup),
             menu_item("Show History", self.open_history),
             menu_item("Analytics (Multi-Day)", self.open_analytics),
+            menu_item("Manage Goals", self.open_goal_management),
+            pystray.Menu.SEPARATOR,
             menu_item("Settings", self.open_settings),
             menu_item("Exit", self.quit_app),
         )
@@ -93,6 +107,60 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
             if count > 0:
                 # Show notification after UI is ready
                 self.after(1000, lambda: self._show_migration_notification(count))
+
+    def _check_first_time_setup(self):
+        """Check if this is first launch and show goal setup if needed."""
+        if not self.goal_manager.has_any_goals():
+            # First time - show goal setup
+            self.after(500, self._show_goal_setup)  # Small delay to let app initialize
+
+    def _show_goal_setup(self):
+        """Show the first-time goal setup wizard."""
+        setup_window = GoalSetupWindow(
+            self.goal_manager, on_complete_callback=self._goal_setup_complete
+        )
+        setup_window.lift()
+        setup_window.focus_force()
+
+    def _goal_setup_complete(self):
+        """Handle completion of goal setup."""
+        # Could show a welcome message or tutorial here
+        pass
+
+    def _show_daily_focus(self):
+        """Show the daily focus selection window."""
+        if self.goal_manager.has_any_goals():
+            daily_focus_window = DailyFocusWindow(
+                self.goal_manager,
+                self.gamification_manager,
+                on_complete_callback=self._daily_focus_complete,
+            )
+            daily_focus_window.lift()
+            daily_focus_window.focus_force()
+        else:
+            # No goals available, skip to activity popup
+            self._show_popup_internal()
+
+    def _daily_focus_complete(self):
+        """Handle completion of daily focus selection."""
+        # Now show the activity popup
+        self._show_popup_internal()
+
+    def _show_day_summary(self):
+        """Show the end-of-day summary window."""
+        day_summary_window = DaySummaryWindow(
+            self.goal_manager,
+            self.gamification_manager,
+            self.storage_manager,
+            on_close_callback=self._day_summary_closed,
+        )
+        day_summary_window.lift()
+        day_summary_window.focus_force()
+
+    def _day_summary_closed(self):
+        """Handle day summary window close."""
+        # Could show a final message or just continue
+        pass
 
     def _show_migration_notification(self, count):
         """Show a notification about successful migration."""
@@ -136,7 +204,7 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
                 self.icon.update_menu()
             time.sleep(5)
 
-    def trigger_popup(self):
+    def trigger_popup(self, needs_daily_focus=False, should_show_summary=False):
         """Trigger the activity logging popup."""
         try:
             import winsound  # pylint: disable=import-outside-toplevel
@@ -144,13 +212,22 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
             winsound.MessageBeep(winsound.MB_ICONASTERISK)
         except ImportError:
             pass
-        self.after(0, self._show_popup_internal)
+
+        if should_show_summary:
+            self.after(0, self._show_day_summary)
+        elif needs_daily_focus:
+            self.after(0, self._show_daily_focus)
+        else:
+            self.after(0, self._show_popup_internal)
 
     def _show_popup_internal(self):
         """Show the popup window (internal method)."""
         if self.popup_window is None or not self.popup_window.winfo_exists():
             self.popup_window = InputWindow(
-                self.storage_manager, on_close_callback=self._popup_closed
+                self.storage_manager,
+                self.goal_manager,
+                self.gamification_manager,
+                on_close_callback=self._popup_closed,
             )
             self.popup_window.lift()
             self.popup_window.focus_force()
@@ -191,17 +268,32 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
             self.history_window.lift()
 
     def open_analytics(self):
-        """Open the analytics window."""
         self.after(0, self._show_analytics_internal)
 
     def _show_analytics_internal(self):
-        """Show the analytics window (internal method)."""
         if self.analytics_window is None or not self.analytics_window.winfo_exists():
-            self.analytics_window = AnalyticsWindow(self.storage_manager)
+            self.analytics_window = AnalyticsWindow(self.storage_manager, self.goal_manager)
             self.analytics_window.lift()
             self.analytics_window.focus_force()
         else:
             self.analytics_window.lift()
+
+    def open_goal_management(self):
+        self.after(0, self._show_goal_management_internal)
+
+    def _show_goal_management_internal(self):
+        if self.goal_management_window is None or not self.goal_management_window.winfo_exists():
+            self.goal_management_window = GoalManageWindow(
+                self.goal_manager, on_update_callback=self._goals_updated
+            )
+            self.goal_management_window.lift()
+            self.goal_management_window.focus_force()
+        else:
+            self.goal_management_window.lift()
+
+    def _goals_updated(self):
+        """Handle goal updates (could refresh other windows if needed)."""
+        pass
 
     def _settings_saved(self):
         """Handle settings saved callback."""

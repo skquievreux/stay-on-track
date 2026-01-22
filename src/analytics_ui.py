@@ -6,16 +6,21 @@ import customtkinter as ctk
 
 from analytics import AnalyticsEngine
 from category_engine import CategoryEngine
+from goals.goal_report import GoalReportExporter
 
 
 class AnalyticsWindow(ctk.CTkToplevel):
     """Multi-day analytics dashboard"""
 
-    def __init__(self, storage_manager):
+    def __init__(self, storage_manager, goal_manager=None):
         super().__init__()
         self.storage_manager = storage_manager
+        self.goal_manager = goal_manager
         self.analytics = AnalyticsEngine(storage_manager)
         self.category_engine = CategoryEngine()
+        self.goal_report_exporter = (
+            GoalReportExporter(goal_manager, storage_manager) if goal_manager else None
+        )
         self.days = 7  # Default to last 7 days
 
         self.title("Analytics Dashboard")
@@ -100,6 +105,10 @@ Most Active Hour:     {stats["most_active_hour"]:02d}:00 ({stats["most_active_ho
 
         # Category Breakdown Section
         self._create_category_breakdown()
+
+        # Goal Progress Section
+        if self.goal_manager:
+            self._create_goal_progress_section()
 
         # Daily Breakdown Section
         breakdown_frame = ctk.CTkFrame(self.scroll_frame)
@@ -348,3 +357,122 @@ Most Active Hour:     {stats["most_active_hour"]:02d}:00 ({stats["most_active_ho
         ctk.CTkLabel(row, text=str(count), font=("Arial", 11), width=40, anchor="e").pack(
             side="left", padx=5
         )
+
+    def _export_goal_report(self):
+        """Export goal report to CSV."""
+        if not self.goal_report_exporter:
+            return
+
+        try:
+            # Calculate date range
+            end_date = datetime.date.today()
+            start_date = end_date - datetime.timedelta(days=self.days - 1)
+
+            # Export report
+            report_path = self.goal_report_exporter.export_goal_report(start_date, end_date)
+
+            # Show success message
+            success_msg = f"Goal report exported successfully!\n\nFile: {report_path}"
+
+            # Create success dialog
+            dialog = ctk.CTkToplevel(self)
+            dialog.title("Export Successful")
+            dialog.geometry("400x150")
+            dialog.attributes("-topmost", True)
+
+            ctk.CTkLabel(dialog, text=success_msg, font=("Arial", 11)).pack(pady=20, padx=20)
+
+            ctk.CTkButton(dialog, text="OK", command=dialog.destroy).pack(pady=10)
+
+        except Exception as e:
+            # Show error message
+            error_msg = f"Failed to export goal report:\n\n{str(e)}"
+
+            dialog = ctk.CTkToplevel(self)
+            dialog.title("Export Failed")
+            dialog.geometry("400x120")
+            dialog.attributes("-topmost", True)
+
+            ctk.CTkLabel(dialog, text=error_msg, font=("Arial", 11), text_color="red").pack(
+                pady=20, padx=20
+            )
+
+            ctk.CTkButton(dialog, text="OK", command=dialog.destroy).pack(pady=10)
+
+    def _create_goal_progress_section(self):
+        """Create goal progress section."""
+        goal_comparison = self.goal_manager.get_goals_comparison(self.days)
+
+        if not goal_comparison["goal_distribution"]:
+            return
+
+        # Goal Progress Section
+        goal_frame = ctk.CTkFrame(self.scroll_frame)
+        goal_frame.pack(pady=10, padx=10, fill="x")
+
+        # Header with export buttons
+        header_frame = ctk.CTkFrame(goal_frame, fg_color="transparent")
+        header_frame.pack(fill="x", pady=10)
+
+        ctk.CTkLabel(
+            header_frame,
+            text=f"🎯 Goal Progress (Last {self.days} Days)",
+            font=("Arial", 14, "bold"),
+        ).pack(side="left")
+
+        # Export buttons
+        export_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
+        export_frame.pack(side="right")
+
+        ctk.CTkButton(
+            export_frame,
+            text="📊 Export Report",
+            width=120,
+            height=30,
+            font=("Arial", 10),
+            command=self._export_goal_report,
+        ).pack(side="left", padx=5)
+
+        # Most productive goal
+        if goal_comparison["most_productive_goal"]:
+            productive_label = ctk.CTkLabel(
+                goal_frame,
+                text=f"Most Productive: {goal_comparison['most_productive_goal']}",
+                font=("Arial", 12, "bold"),
+                text_color="#4CAF50",
+            )
+            productive_label.pack(pady=(0, 10))
+
+        # Goal distribution
+        for goal_name, data in goal_comparison["goal_distribution"].items():
+            self._create_goal_progress_bar(goal_frame, goal_name, data)
+
+    def _create_goal_progress_bar(self, parent, goal_name, data):
+        """Create a progress bar for a goal."""
+        row = ctk.CTkFrame(parent, fg_color="transparent")
+        row.pack(pady=3, padx=10, fill="x")
+
+        # Goal name
+        ctk.CTkLabel(row, text=goal_name, font=("Arial", 11), width=150, anchor="w").pack(
+            side="left", padx=5
+        )
+
+        # Progress bar
+        percentage = data["percentage"]
+        bar_length = min(int(percentage / 2), 40)  # Max 40 chars
+        progress_bar = "█" * bar_length + "░" * (40 - bar_length)
+
+        ctk.CTkLabel(
+            row,
+            text=progress_bar,
+            font=("Courier New", 11),
+            text_color="#4CAF50" if percentage > 30 else "#FF9800",
+            width=250,
+            anchor="w",
+        ).pack(side="left", padx=5)
+
+        # Time and percentage
+        time_str = self.goal_manager.format_duration(data["time_minutes"])
+        ctk.CTkLabel(
+            row, text=f"{time_str} ({percentage}%)", font=("Arial", 11), width=80, anchor="e"
+        ).pack(side="left", padx=5)
