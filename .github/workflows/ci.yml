@@ -1,5 +1,6 @@
 
 name: Stay-On-Track CI
+# CI workflow for Stay-On-Track application - Updated for SQLite migration
 
 on:
   push:

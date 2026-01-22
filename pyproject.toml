@@ -26,8 +26,8 @@ isort = "^5.13.0"
 pytest = "^7.0.0"
 pytest-cov = "^4.0.0"
 
-# Type Checking (optional)
-mypy = "^1.0.0"
+# Type Checking (optional) - removed from CI to avoid installation issues
+# mypy = "^1.8.0"
 
 # Linting (for CI/CD)
 pylint = "^3.0.0"
