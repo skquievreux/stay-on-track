@@ -6,7 +6,6 @@ import customtkinter as ctk
 
 from analytics import AnalyticsEngine
 from category_engine import CategoryEngine
-from goals.goal_manager import GoalManager
 from goals.goal_report import GoalReportExporter
 
 
@@ -334,8 +333,30 @@ Most Active Hour:     {stats["most_active_hour"]:02d}:00 ({stats["most_active_ho
         # Date label
         date_label = f"{date_str}{'  (Today)' if is_today else ''}"
         ctk.CTkLabel(
-            row, text=f"{time_str} ({percentage}%)", font=("Arial", 11), width=80, anchor="e"
+            row,
+            text=date_label,
+            font=("Arial", 11, "bold" if is_today else "normal"),
+            width=150,
+            anchor="w",
         ).pack(side="left", padx=5)
+
+        # Visual bar
+        bar_length = min(count * 2, 40)
+        bar = "|" * bar_length if count > 0 else "."
+
+        ctk.CTkLabel(
+            row,
+            text=bar,
+            font=("Courier New", 11),
+            text_color="#4CAF50" if is_today else "gray",
+            anchor="w",
+            width=300,
+        ).pack(side="left", padx=5)
+
+        # Count
+        ctk.CTkLabel(row, text=str(count), font=("Arial", 11), width=40, anchor="e").pack(
+            side="left", padx=5
+        )
 
     def _export_goal_report(self):
         """Export goal report to CSV."""
@@ -377,24 +398,6 @@ Most Active Hour:     {stats["most_active_hour"]:02d}:00 ({stats["most_active_ho
             )
 
             ctk.CTkButton(dialog, text="OK", command=dialog.destroy).pack(pady=10)
-
-        # Visual bar
-        bar_length = min(count * 2, 40)
-        bar = "|" * bar_length if count > 0 else "."
-
-        ctk.CTkLabel(
-            row,
-            text=bar,
-            font=("Courier New", 11),
-            text_color="#4CAF50" if is_today else "gray",
-            anchor="w",
-            width=300,
-        ).pack(side="left", padx=5)
-
-        # Count
-        ctk.CTkLabel(row, text=str(count), font=("Arial", 11), width=40, anchor="e").pack(
-            side="left", padx=5
-        )
 
     def _create_goal_progress_section(self):
         """Create goal progress section."""

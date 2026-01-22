@@ -1,6 +1,5 @@
 """Daily focus selection window for Stay-On-Track."""
 
-import datetime
 import customtkinter as ctk
 
 

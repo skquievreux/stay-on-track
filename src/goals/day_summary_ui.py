@@ -1,6 +1,5 @@
 """End-of-day summary window for Stay-On-Track."""
 
-import datetime
 import customtkinter as ctk
 
 
@@ -52,8 +51,6 @@ class DaySummaryWindow(ctk.CTkToplevel):
 
     def _load_summary(self):
         """Load and display the day's summary."""
-        today = datetime.date.today()
-
         # Get daily focus goals
         daily_goals = self.goal_manager.get_daily_focus_today()
 

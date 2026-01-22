@@ -12,9 +12,9 @@ from pystray import MenuItem as menu_item
 
 from analytics_ui import AnalyticsWindow
 from config import ConfigManager
-from goals.gamification import GamificationManager
 from goals.daily_focus_ui import DailyFocusWindow
 from goals.day_summary_ui import DaySummaryWindow
+from goals.gamification import GamificationManager
 from goals.goal_manage_ui import GoalManageWindow
 from goals.goal_manager import GoalManager
 from goals.goal_setup_ui import GoalSetupWindow
@@ -271,9 +271,8 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
         self.after(0, self._show_analytics_internal)
 
     def _show_analytics_internal(self):
-        if self.analytics_window is None or not \
-                self.analytics_window.winfo_exists():
-            self.analytics_window = AnalyticsWindow(self.storage_manager)
+        if self.analytics_window is None or not self.analytics_window.winfo_exists():
+            self.analytics_window = AnalyticsWindow(self.storage_manager, self.goal_manager)
             self.analytics_window.lift()
             self.analytics_window.focus_force()
         else:
@@ -283,11 +282,9 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
         self.after(0, self._show_goal_management_internal)
 
     def _show_goal_management_internal(self):
-        if self.goal_management_window is None or not \
-                self.goal_management_window.winfo_exists():
+        if self.goal_management_window is None or not self.goal_management_window.winfo_exists():
             self.goal_management_window = GoalManageWindow(
-                self.goal_manager,
-                on_update_callback=self._goals_updated
+                self.goal_manager, on_update_callback=self._goals_updated
             )
             self.goal_management_window.lift()
             self.goal_management_window.focus_force()
@@ -297,9 +294,6 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
     def _goals_updated(self):
         """Handle goal updates (could refresh other windows if needed)."""
         pass
-            self.analytics_window.focus_force()
-        else:
-            self.analytics_window.lift()
 
     def _settings_saved(self):
         """Handle settings saved callback."""

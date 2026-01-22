@@ -238,7 +238,7 @@ class InputWindow(ctk.CTkToplevel):
 
         if daily_goals:
             # Show daily goals
-            for i, goal in enumerate(daily_goals):
+            for _i, goal in enumerate(daily_goals):
                 goal_name = goal["goal_name"] or goal["adhoc_name"]
                 radio_btn = ctk.CTkRadioButton(
                     self.content_frame,
@@ -299,7 +299,7 @@ class InputWindow(ctk.CTkToplevel):
 
         # Update streak and check achievements
         self.gamification_manager.update_streak()
-        newly_unlocked = self.gamification_manager.check_and_unlock_achievements()
+        self.gamification_manager.check_and_unlock_achievements()
 
         # Close window
         self.on_close()

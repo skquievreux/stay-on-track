@@ -1,7 +1,8 @@
 """Goal management interface for Stay-On-Track."""
 
-import customtkinter as ctk
 from tkinter import messagebox
+
+import customtkinter as ctk
 
 
 class GoalManageWindow(ctk.CTkToplevel):
@@ -231,7 +232,7 @@ class GoalManageWindow(ctk.CTkToplevel):
                 height=20,
                 font=("Arial", 9),
                 fg_color="#4CAF50",
-                command=lambda: self._restore_goal(goal["id"], goal["name"]),
+                command=lambda g=goal: self._restore_goal(g["id"], g["name"]),
             )
             restore_btn.pack(side="right", padx=8, pady=8)
 

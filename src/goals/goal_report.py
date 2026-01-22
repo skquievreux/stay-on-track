@@ -3,7 +3,7 @@
 import csv
 import datetime
 import os
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 
 class GoalReportExporter:

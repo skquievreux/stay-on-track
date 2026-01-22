@@ -1,7 +1,7 @@
 """Goal management core logic for Stay-On-Track."""
 
 import datetime
-from typing import List, Dict, Optional, Any
+from typing import Any, Dict, List, Optional
 
 
 class GoalManager:
@@ -175,9 +175,9 @@ class GoalManager:
 
         return {
             "total_time": total_time,
-            "most_productive_goal": most_productive["goal_name"]
-            if most_productive["time_minutes"] > 0
-            else None,
+            "most_productive_goal": (
+                most_productive["goal_name"] if most_productive["time_minutes"] > 0 else None
+            ),
             "goal_distribution": distribution,
         }
 

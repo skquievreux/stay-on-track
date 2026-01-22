@@ -1,7 +1,7 @@
 """Gamification features for Stay-On-Track: streaks, achievements, and motivation."""
 
 import datetime
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 
 class GamificationManager:
@@ -107,7 +107,7 @@ class GamificationManager:
         newly_unlocked = []
 
         # Check each achievement
-        for key, achievement in self.ACHIEVEMENTS.items():
+        for key, _achievement in self.ACHIEVEMENTS.items():
             if self._check_achievement_condition(key):
                 if self.storage.unlock_achievement(key):
                     newly_unlocked.append(key)
