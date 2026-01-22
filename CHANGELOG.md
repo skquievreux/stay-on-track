@@ -1,3 +1,23 @@
+# [1.6.0](https://github.com/skquievreux/stay-on-track/compare/v1.5.0...v1.6.0) (2026-01-22)
+
+
+### Bug Fixes
+
+* correct SQL string indentation in database schema ([61c70c8](https://github.com/skquievreux/stay-on-track/commit/61c70c83d0c90b164c576bdebc2889bb8e773440))
+
+
+### Features
+
+* complete goal tracking system implementation ([a08cc8b](https://github.com/skquievreux/stay-on-track/commit/a08cc8bea7635e9fd65464deb22fa3f042367436))
+* extend database schema for goal tracking ([201d583](https://github.com/skquievreux/stay-on-track/commit/201d583d786baa97828f37783beab1afb020f314))
+* implement daily focus selection system ([77cb969](https://github.com/skquievreux/stay-on-track/commit/77cb969f523866c1f3cf7233e25bf7b08c0bf03c))
+* implement end-of-day summary window ([d4070c4](https://github.com/skquievreux/stay-on-track/commit/d4070c4eea83a8b1cf432b8971b2fa222eda45cd))
+* implement first-time goal setup wizard ([019b3da](https://github.com/skquievreux/stay-on-track/commit/019b3da4fe6b17dc558cefd721f782de47d539fc))
+* implement goal management and gamification core ([912f0f9](https://github.com/skquievreux/stay-on-track/commit/912f0f9067e8a5a672a4f6acb6258d4c721b15f1))
+* implement goal management interface ([7f178ab](https://github.com/skquievreux/stay-on-track/commit/7f178ab533479fcdc3b5dd8bb1f2781ff250f957))
+* implement goal report export functionality ([879f045](https://github.com/skquievreux/stay-on-track/commit/879f04538f3e54b657357e368213e02c97b464e6))
+* redesign InputWindow as 3-step activity logging flow ([f744b8f](https://github.com/skquievreux/stay-on-track/commit/f744b8f6cc40b56567cae2c8d8109c9895ed360f))
+
 # [1.5.0](https://github.com/skquievreux/stay-on-track/compare/v1.4.2...v1.5.0) (2026-01-22)
 
 
