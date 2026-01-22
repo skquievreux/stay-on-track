@@ -14,6 +14,7 @@ from analytics_ui import AnalyticsWindow
 from config import ConfigManager
 from goals.gamification import GamificationManager
 from goals.goal_manager import GoalManager
+from goals.goal_setup_ui import GoalSetupWindow
 from scheduler import Scheduler
 from storage import StorageManager
 from ui import HistoryWindow, InputWindow, SettingsWindow
@@ -49,6 +50,9 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
 
         # Check for and perform CSV migration on first launch
         self._check_migration()
+
+        # Check for first-time goal setup
+        self._check_first_time_setup()
 
         # Scheduler
         self.scheduler = Scheduler(self.config_manager, self.trigger_popup)
@@ -97,6 +101,25 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
             if count > 0:
                 # Show notification after UI is ready
                 self.after(1000, lambda: self._show_migration_notification(count))
+
+    def _check_first_time_setup(self):
+        """Check if this is first launch and show goal setup if needed."""
+        if not self.goal_manager.has_any_goals():
+            # First time - show goal setup
+            self.after(500, self._show_goal_setup)  # Small delay to let app initialize
+
+    def _show_goal_setup(self):
+        """Show the first-time goal setup wizard."""
+        setup_window = GoalSetupWindow(
+            self.goal_manager, on_complete_callback=self._goal_setup_complete
+        )
+        setup_window.lift()
+        setup_window.focus_force()
+
+    def _goal_setup_complete(self):
+        """Handle completion of goal setup."""
+        # Could show a welcome message or tutorial here
+        pass
 
     def _show_migration_notification(self, count):
         """Show a notification about successful migration."""
