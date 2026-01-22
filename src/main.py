@@ -15,6 +15,7 @@ from config import ConfigManager
 from goals.gamification import GamificationManager
 from goals.daily_focus_ui import DailyFocusWindow
 from goals.day_summary_ui import DaySummaryWindow
+from goals.goal_manage_ui import GoalManageWindow
 from goals.goal_manager import GoalManager
 from goals.goal_setup_ui import GoalSetupWindow
 from scheduler import Scheduler
@@ -65,6 +66,7 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
         self.settings_window = None
         self.history_window = None
         self.analytics_window = None
+        self.goal_management_window = None
         self.next_run_str = "Calculating..."
 
         # Tray Icon
@@ -83,6 +85,8 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
             menu_item("Log Activity", self.trigger_popup),
             menu_item("Show History", self.open_history),
             menu_item("Analytics (Multi-Day)", self.open_analytics),
+            menu_item("Manage Goals", self.open_goal_management),
+            pystray.Menu.SEPARATOR,
             menu_item("Settings", self.open_settings),
             menu_item("Exit", self.quit_app),
         )
@@ -264,14 +268,35 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
             self.history_window.lift()
 
     def open_analytics(self):
-        """Open the analytics window."""
         self.after(0, self._show_analytics_internal)
 
     def _show_analytics_internal(self):
-        """Show the analytics window (internal method)."""
-        if self.analytics_window is None or not self.analytics_window.winfo_exists():
+        if self.analytics_window is None or not \
+                self.analytics_window.winfo_exists():
             self.analytics_window = AnalyticsWindow(self.storage_manager)
             self.analytics_window.lift()
+            self.analytics_window.focus_force()
+        else:
+            self.analytics_window.lift()
+
+    def open_goal_management(self):
+        self.after(0, self._show_goal_management_internal)
+
+    def _show_goal_management_internal(self):
+        if self.goal_management_window is None or not \
+                self.goal_management_window.winfo_exists():
+            self.goal_management_window = GoalManageWindow(
+                self.goal_manager,
+                on_update_callback=self._goals_updated
+            )
+            self.goal_management_window.lift()
+            self.goal_management_window.focus_force()
+        else:
+            self.goal_management_window.lift()
+
+    def _goals_updated(self):
+        """Handle goal updates (could refresh other windows if needed)."""
+        pass
             self.analytics_window.focus_force()
         else:
             self.analytics_window.lift()
