@@ -1,3 +1,18 @@
+# [1.5.0](https://github.com/skquievreux/stay-on-track/compare/v1.4.2...v1.5.0) (2026-01-22)
+
+
+### Bug Fixes
+
+* correct YAML indentation in CI workflow ([81ca1c5](https://github.com/skquievreux/stay-on-track/commit/81ca1c52f86886b746733dc6631fce7559de5d4b))
+* remove mypy from dependencies to resolve CI installation issues ([1a07597](https://github.com/skquievreux/stay-on-track/commit/1a075975dae2858f123696862fdea5db5e7fd7ed))
+* update mypy version to resolve CI installation issues ([bc7209b](https://github.com/skquievreux/stay-on-track/commit/bc7209bd07cad7f8fd859706943cefd8da339bfc))
+* update Node.js version requirement for semantic-release ([43c8376](https://github.com/skquievreux/stay-on-track/commit/43c83766e9ca7243c696c6f5f150d72649fe7f54))
+
+
+### Features
+
+* migrate to SQLite database with enhanced input popup ([155ddc5](https://github.com/skquievreux/stay-on-track/commit/155ddc5f3fdf3be1cbc32292b5dcd09a1b42a81e))
+
 ## [1.4.2](https://github.com/skquievreux/stay-on-track/compare/v1.4.1...v1.4.2) (2026-01-18)
 
 
