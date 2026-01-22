@@ -38,13 +38,15 @@ class StorageManager:
                     effectiveness TEXT CHECK(effectiveness IN ('good', 'bad') OR effectiveness IS NULL),
                     goal_id INTEGER REFERENCES goals(id)
                 )
-            """
+                """
+            )
 
             # Create index for faster date-based queries
             cursor.execute(
                 """
                 CREATE INDEX IF NOT EXISTS idx_entries_timestamp ON entries(timestamp)
-            """
+                """
+            )
 
             # Create goals table
             cursor.execute(
@@ -57,7 +59,8 @@ class StorageManager:
                     is_archived BOOLEAN DEFAULT 0,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
-            """
+                """
+            )
 
             # Create daily_focus table (daily goal selection)
             cursor.execute(
@@ -71,7 +74,8 @@ class StorageManager:
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(date, priority)
                 )
-            """
+                """
+            )
 
             # Create streaks table
             cursor.execute(
@@ -82,7 +86,8 @@ class StorageManager:
                     end_date DATE,
                     length INTEGER DEFAULT 1
                 )
-            """
+                """
+            )
 
             # Create achievements table
             cursor.execute(
@@ -93,11 +98,11 @@ class StorageManager:
                     unlocked_at DATETIME NOT NULL,
                     notified BOOLEAN DEFAULT 0
                 )
-            """
+                """
+            )
 
             # Create migrations table to track CSV import
             cursor.execute(
-
                 """
                 CREATE TABLE IF NOT EXISTS migrations (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -105,7 +110,8 @@ class StorageManager:
                     entries_count INTEGER NOT NULL,
                     source TEXT
                 )
-            """
+                """
+            )
             conn.commit()
 
     def _get_connection(self):
@@ -353,7 +359,9 @@ class StorageManager:
         for error in errors:
             print(f"Migration warning: {error}")
 
-        print(f"Migration complete: {migrated_count} entries imported from {len(csv_files)} CSV files")
+        print(
+            f"Migration complete: {migrated_count} entries imported from {len(csv_files)} CSV files"
+        )
         return migrated_count
 
     # =========================================================================
@@ -398,10 +406,7 @@ class StorageManager:
                 (parent_id,),
             )
             rows = cursor.fetchall()
-            return [
-                {"id": row["id"], "name": row["name"]}
-                for row in rows
-            ]
+            return [{"id": row["id"], "name": row["name"]} for row in rows]
 
     def archive_goal(self, goal_id):
         """Archive a goal (soft delete)."""
@@ -627,7 +632,9 @@ class StorageManager:
 
         if active_streak:
             # Check if this continues the streak (consecutive days)
-            last_streak_date = datetime.datetime.fromisoformat(active_streak["start_date"]).date() + datetime.timedelta(days=active_streak["length"] - 1)
+            last_streak_date = datetime.datetime.fromisoformat(
+                active_streak["start_date"]
+            ).date() + datetime.timedelta(days=active_streak["length"] - 1)
             if last_streak_date == date - datetime.timedelta(days=1):
                 # Continue streak
                 new_length = active_streak["length"] + 1
@@ -666,7 +673,9 @@ class StorageManager:
             active_streak = cursor.fetchone()
 
         if active_streak:
-            end_date = datetime.datetime.fromisoformat(active_streak["start_date"]).date() + datetime.timedelta(days=active_streak["length"] - 1)
+            end_date = datetime.datetime.fromisoformat(
+                active_streak["start_date"]
+            ).date() + datetime.timedelta(days=active_streak["length"] - 1)
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute(
@@ -738,10 +747,7 @@ class StorageManager:
                 "SELECT id, achievement_key FROM achievements WHERE notified = 0 ORDER BY unlocked_at DESC"
             )
             rows = cursor.fetchall()
-            return [
-                {"id": row["id"], "key": row["achievement_key"]}
-                for row in rows
-            ]
+            return [{"id": row["id"], "key": row["achievement_key"]} for row in rows]
 
     def mark_achievement_notified(self, achievement_id):
         """Mark an achievement as notified."""
