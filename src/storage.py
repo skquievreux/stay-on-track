@@ -114,6 +114,34 @@ class StorageManager:
             )
             conn.commit()
 
+        # Run migrations
+        self._migrate_db()
+
+    def _migrate_db(self):
+        """Handle database schema updates."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Check for goal_id column in entries
+                cursor.execute("PRAGMA table_info(entries)")
+                columns = [info[1] for info in cursor.fetchall()]
+                
+                if "goal_id" not in columns:
+                    print("[Storage] Migrating database: Adding 'goal_id' column to 'entries' table...")
+                    cursor.execute("ALTER TABLE entries ADD COLUMN goal_id INTEGER REFERENCES goals(id)")
+                    conn.commit()
+                
+                # Add goal_id index if missing
+                cursor.execute("PRAGMA index_list(entries)")
+                indexes = [info[1] for info in cursor.fetchall()]
+                if "idx_entries_goal_id" not in indexes:
+                    cursor.execute("CREATE INDEX IF NOT EXISTS idx_entries_goal_id ON entries(goal_id)")
+                    conn.commit()
+                    
+        except Exception as e:
+            print(f"[Storage] Migration error: {e}")
+
     def _get_connection(self):
         """Get a database connection with row factory for dict-like access."""
         conn = sqlite3.connect(self.db_path)
@@ -124,15 +152,16 @@ class StorageManager:
     # Core Operations
     # =========================================================================
 
-    def save_entry(self, activity, effectiveness=None):
+    def save_entry(self, activity, effectiveness=None, custom_timestamp=None):
         """
         Save a new activity entry.
 
         Args:
             activity: The activity description text
             effectiveness: Optional effectiveness rating ('good' or 'bad')
+            custom_timestamp: Optional datetime object to use instead of now
         """
-        timestamp = datetime.datetime.now()
+        timestamp = custom_timestamp if custom_timestamp else datetime.datetime.now()
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
@@ -158,7 +187,19 @@ class StorageManager:
 
             if row:
                 return datetime.datetime.fromisoformat(row["timestamp"])
+            if row:
+                return datetime.datetime.fromisoformat(row["timestamp"])
             return None
+
+    def get_entries_count_for_range(self, start_time, end_time):
+        """Count entries within a specific time range."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT COUNT(*) as count FROM entries WHERE timestamp BETWEEN ? AND ?",
+                (start_time.isoformat(), end_time.isoformat()),
+            )
+            return cursor.fetchone()["count"]
 
     def get_recent_entries(self, limit=2):
         """
@@ -397,6 +438,23 @@ class StorageManager:
                 for row in rows
             ]
 
+    def get_archived_goals(self):
+        """Get all archived goals."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT id, name, parent_id FROM goals WHERE is_archived = 1 ORDER BY name"
+            )
+            rows = cursor.fetchall()
+            return [
+                {
+                    "id": row["id"],
+                    "name": row["name"],
+                    "parent_id": row["parent_id"],
+                }
+                for row in rows
+            ]
+
     def get_subgoals(self, parent_id):
         """Get subgoals for a parent goal."""
         with self._get_connection() as conn:
@@ -407,6 +465,14 @@ class StorageManager:
             )
             rows = cursor.fetchall()
             return [{"id": row["id"], "name": row["name"]} for row in rows]
+
+    def get_goal_name(self, goal_id):
+        """Get a goal's name by its ID."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM goals WHERE id = ?", (goal_id,))
+            row = cursor.fetchone()
+            return row["name"] if row else None
 
     def archive_goal(self, goal_id):
         """Archive a goal (soft delete)."""

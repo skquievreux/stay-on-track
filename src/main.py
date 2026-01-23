@@ -15,9 +15,9 @@ from config import ConfigManager
 from goals.daily_focus_ui import DailyFocusWindow
 from goals.day_summary_ui import DaySummaryWindow
 from goals.gamification import GamificationManager
-from goals.goal_manage_ui import GoalManageWindow
 from goals.goal_manager import GoalManager
 from goals.goal_setup_ui import GoalSetupWindow
+from goals.goal_bulk_manage_ui import GoalBulkManageWindow
 from scheduler import Scheduler
 from storage import StorageManager
 from ui import HistoryWindow, InputWindow, SettingsWindow
@@ -82,13 +82,13 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
             menu_item(lambda text: self.next_run_str, lambda: None, enabled=False),
             menu_item(lambda text: version_text, lambda: None, enabled=False),
             pystray.Menu.SEPARATOR,
-            menu_item("Log Activity", self.trigger_popup),
-            menu_item("Show History", self.open_history),
-            menu_item("Analytics (Multi-Day)", self.open_analytics),
-            menu_item("Manage Goals", self.open_goal_management),
+            menu_item("Log Activity", lambda: self.trigger_popup()),
+            menu_item("Show History", lambda: self.open_history()),
+            menu_item("Analytics (Multi-Day)", lambda: self.open_analytics()),
+            menu_item("Manage Goals", lambda: self.open_goal_management()),
             pystray.Menu.SEPARATOR,
-            menu_item("Settings", self.open_settings),
-            menu_item("Exit", self.quit_app),
+            menu_item("Settings", lambda: self.open_settings()),
+            menu_item("Exit", lambda: self.quit_app()),
         )
         self.icon = pystray.Icon("name", self.icon_image, "Stay On Track", self.menu)
 
@@ -261,7 +261,7 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
     def _show_history_internal(self):
         """Show the history window (internal method)."""
         if self.history_window is None or not self.history_window.winfo_exists():
-            self.history_window = HistoryWindow(self.storage_manager)
+            self.history_window = HistoryWindow(self.storage_manager, self.goal_manager)
             self.history_window.lift()
             self.history_window.focus_force()
         else:
@@ -277,19 +277,21 @@ class StayOnTrackApp(ctk.CTk):  # pylint: disable=too-many-instance-attributes
             self.analytics_window.focus_force()
         else:
             self.analytics_window.lift()
+            self.analytics_window.focus_force()
 
     def open_goal_management(self):
         self.after(0, self._show_goal_management_internal)
 
     def _show_goal_management_internal(self):
         if self.goal_management_window is None or not self.goal_management_window.winfo_exists():
-            self.goal_management_window = GoalManageWindow(
+            self.goal_management_window = GoalBulkManageWindow(
                 self.goal_manager, on_update_callback=self._goals_updated
             )
             self.goal_management_window.lift()
             self.goal_management_window.focus_force()
         else:
             self.goal_management_window.lift()
+            self.goal_management_window.focus_force()
 
     def _goals_updated(self):
         """Handle goal updates (could refresh other windows if needed)."""

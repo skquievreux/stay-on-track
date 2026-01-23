@@ -27,6 +27,14 @@ class AnalyticsWindow(ctk.CTkToplevel):
         self.geometry("600x800")
         self.attributes("-topmost", True)
 
+        # Navigation Bar (Central Header)
+        self.nav_bar = ctk.CTkFrame(self, fg_color="transparent")
+        self.nav_bar.pack(fill="x", padx=10, pady=(10, 5))
+        
+        self._create_nav_button(self.nav_bar, "📋 Log", lambda: self._switch_to("history")).pack(side="left", expand=True, padx=2)
+        self._create_nav_button(self.nav_bar, "📊 Analytics", "current").pack(side="left", expand=True, padx=2)
+        self._create_nav_button(self.nav_bar, "🎯 Goals", lambda: self._switch_to("goals")).pack(side="left", expand=True, padx=2)
+
         # Title
         self.lbl_title = ctk.CTkLabel(self, text="Activity Analytics", font=("Arial", 18, "bold"))
         self.lbl_title.pack(pady=15)
@@ -476,3 +484,32 @@ Most Active Hour:     {stats["most_active_hour"]:02d}:00 ({stats["most_active_ho
         ctk.CTkLabel(
             row, text=f"{time_str} ({percentage}%)", font=("Arial", 11), width=80, anchor="e"
         ).pack(side="left", padx=5)
+    def _create_nav_button(self, parent, text, command):
+        """Helper to create consistent navigation buttons."""
+        is_current = command == "current"
+        return ctk.CTkButton(
+            parent,
+            text=text,
+            height=32,
+            fg_color="#1976D2" if is_current else "#F5F5F5",
+            text_color="white" if is_current else "#333333",
+            hover_color="#1565C0" if is_current else "#E0E0E0",
+            command=None if is_current else command
+        )
+
+    def _switch_to(self, target):
+        """Switch to another window via the main app instance."""
+        # Find the main app instance
+        parent = self.master
+        while parent and not hasattr(parent, "open_analytics"):
+            if hasattr(parent, "master"):
+                parent = parent.master
+            else:
+                break
+        
+        if parent:
+            if target == "history":
+                parent.open_history()
+            elif target == "goals":
+                parent.open_goal_management()
+            self.destroy()

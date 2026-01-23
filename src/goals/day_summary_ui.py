@@ -280,10 +280,18 @@ class DaySummaryWindow(ctk.CTkToplevel):
         close_btn.pack(side="right", padx=10)
 
     def _open_analytics(self):
-        """Open the analytics window."""
-        # This would need to be implemented to open the analytics window
-        # For now, just close this window
-        self._on_close()
+        """Open the analytics window via the main app instance."""
+        # Find the main app instance
+        parent = self.master
+        while parent and not hasattr(parent, "open_analytics"):
+            if hasattr(parent, "master"):
+                parent = parent.master
+            else:
+                break
+        
+        if parent:
+            parent.open_analytics()
+        self.destroy()
 
     def _on_close(self):
         """Handle window close."""

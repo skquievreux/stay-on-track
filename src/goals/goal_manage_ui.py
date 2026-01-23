@@ -264,14 +264,19 @@ class GoalManageWindow(ctk.CTkToplevel):
         dialog = ctk.CTkToplevel(self)
         dialog.title(title)
         dialog.geometry("400x200")
-        dialog.attributes("-topmost", True)
-        dialog.resizable(False, False)
-
+        dialog.transient(self)  # Make dialog transient to parent
+        dialog.grab_set()       # Make dialog modal
+        
         # Center on parent
         dialog.update_idletasks()
         x = self.winfo_x() + (self.winfo_width() - 400) // 2
         y = self.winfo_y() + (self.winfo_height() - 200) // 2
         dialog.geometry(f"400x200+{x}+{y}")
+
+        # Ensure dialog is on top and focused
+        dialog.lift()
+        dialog.attributes("-topmost", True)
+        dialog.focus_force()
 
         # Content
         ctk.CTkLabel(dialog, text="Goal Name:", font=("Arial", 12)).pack(pady=(20, 5))
