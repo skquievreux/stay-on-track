@@ -1,6 +1,7 @@
 """Daily focus selection window for Stay-On-Track."""
 
 import customtkinter as ctk
+from goals.goal_bulk_manage_ui import GoalBulkManageWindow
 
 
 class DailyFocusWindow(ctk.CTkToplevel):
@@ -18,9 +19,9 @@ class DailyFocusWindow(ctk.CTkToplevel):
 
         # Configure window
         self.title("Daily Focus - Stay On Track")
-        self.geometry("450x550")
+        self.geometry("450x600")  # Slightly taller
         self.attributes("-topmost", True)
-        self.resizable(False, False)
+        self.resizable(True, True)  # Allow resizing
 
         # Initialize UI
         self._create_main_ui()
@@ -30,13 +31,21 @@ class DailyFocusWindow(ctk.CTkToplevel):
 
     def _create_main_ui(self):
         """Create the main UI structure."""
+        # Navigation frame (Pack FIRST to stick to bottom)
+        self.nav_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.nav_frame.pack(side="bottom", fill="x", pady=20, padx=20)
+
+        # Main container for top content
+        top_container = ctk.CTkFrame(self, fg_color="transparent")
+        top_container.pack(side="top", fill="both", expand=True)
+
         # Title
-        self.title_label = ctk.CTkLabel(self, text="☀️ Good morning!", font=("Arial", 18, "bold"))
+        self.title_label = ctk.CTkLabel(top_container, text="☀️ Good morning!", font=("Arial", 18, "bold"))
         self.title_label.pack(pady=(25, 5))
 
         # Motivational quote
         self.quote_label = ctk.CTkLabel(
-            self,
+            top_container,
             text=self.gamification_manager.get_morning_quote(),
             font=("Arial", 11),
             text_color="#4CAF50",
@@ -46,21 +55,19 @@ class DailyFocusWindow(ctk.CTkToplevel):
 
         # Subtitle
         self.subtitle_label = ctk.CTkLabel(
-            self, text="What are your 3 priorities today?", font=("Arial", 14)
+            top_container, text="What are your 3 priorities today?", font=("Arial", 14)
         )
         self.subtitle_label.pack(pady=(0, 15))
 
+        # Streak display (Pack BEFORE content frame to sit above it, or AFTER to sit below?)
+        # Original was below content. Let's put it below content but above nav.
+        self.streak_frame = ctk.CTkFrame(top_container, fg_color="transparent")
+        self.streak_frame.pack(side="bottom", pady=(10, 0))
+
         # Content frame
-        self.content_frame = ctk.CTkScrollableFrame(self, width=400, height=300)
+        self.content_frame = ctk.CTkScrollableFrame(top_container, width=400)
         self.content_frame.pack(pady=5, padx=25, fill="both", expand=True)
 
-        # Streak display
-        self.streak_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.streak_frame.pack(pady=(10, 0))
-
-        # Navigation frame
-        self.nav_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.nav_frame.pack(pady=(15, 25))
 
     def _load_content(self):
         """Load and display available goals and suggestions."""
@@ -116,6 +123,7 @@ class DailyFocusWindow(ctk.CTkToplevel):
 
         # Goal selection checkboxes
         self.goal_vars = {}
+        self.checkboxes = {} # Direct references
         for goal in available_goals:
             var = ctk.BooleanVar(value=False)
             self.goal_vars[goal["id"]] = var
@@ -133,6 +141,7 @@ class DailyFocusWindow(ctk.CTkToplevel):
                 command=self._update_selection_count,
             )
             checkbox.pack(anchor="w", pady=2, padx=20)
+            self.checkboxes[goal["id"]] = checkbox
 
         # Adhoc goal suggestions
         if recent_adhoc:
@@ -194,15 +203,11 @@ class DailyFocusWindow(ctk.CTkToplevel):
 
         self.selection_label.configure(text=f"Selected: {selected_count}/3")
 
+        self.selection_label.configure(text=f"Selected: {selected_count}/3")
+
         # Disable checkboxes if limit reached
         for goal_id, var in self.goal_vars.items():
-            checkbox = None
-            for child in self.content_frame.winfo_children():
-                if isinstance(child, ctk.CTkCheckBox) and hasattr(child, "_goal_id"):
-                    if child._goal_id == goal_id:
-                        checkbox = child
-                        break
-
+            checkbox = self.checkboxes.get(goal_id)
             if checkbox:
                 if selected_count >= 3 and not var.get():
                     checkbox.configure(state="disabled")
@@ -314,9 +319,12 @@ class DailyFocusWindow(ctk.CTkToplevel):
         # Start Day button
         start_btn = ctk.CTkButton(
             self.nav_frame,
-            text="Start Day →",
-            width=120,
-            height=35,
+            text=" Start My Day → ",
+            width=160,
+            height=40,
+            font=("Arial", 13, "bold"),
+            fg_color="#4CAF50",
+            hover_color="#45a049",
             command=self._save_and_continue,
         )
         start_btn.pack(side="right", padx=10)
@@ -371,7 +379,5 @@ class DailyFocusWindow(ctk.CTkToplevel):
         self.destroy()
 
     def _open_goal_management(self):
-        """Open goal management window."""
-        # This would need to be implemented - for now just show message
-        # In the full implementation, this would open GoalManageWindow
-        pass
+        """Open improved goal management window."""
+        GoalBulkManageWindow(self.goal_manager, on_update_callback=self._load_content)

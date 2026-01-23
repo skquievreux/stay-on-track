@@ -28,12 +28,15 @@ class InputWindow(ctk.CTkToplevel):
         self.main_frame = None
         self.title_label = None
         self.content_frame = None
+        
+        # New state for time selection
+        self.selected_time = None
 
         # Configure window
         self.title("Stay On Track - Log Activity")
-        self.geometry("450x300")
+        self.geometry("450x500")
         self.attributes("-topmost", True)
-        self.resizable(False, False)
+        self.resizable(True, True)
 
         # Initialize UI
         self._create_main_ui()
@@ -43,17 +46,21 @@ class InputWindow(ctk.CTkToplevel):
 
     def _create_main_ui(self):
         """Create the main UI structure."""
+        # Navigation buttons frame (Pack FIRST to stick to bottom)
+        self.nav_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.nav_frame.pack(side="bottom", fill="x", pady=20)
+
+        # Main container for top content
+        top_container = ctk.CTkFrame(self, fg_color="transparent")
+        top_container.pack(side="top", fill="both", expand=True)
+
         # Title
-        self.title_label = ctk.CTkLabel(self, text="", font=("Arial", 16, "bold"))
+        self.title_label = ctk.CTkLabel(top_container, text="", font=("Arial", 16, "bold"))
         self.title_label.pack(pady=(20, 10))
 
         # Content frame
-        self.content_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.content_frame = ctk.CTkFrame(top_container, fg_color="transparent")
         self.content_frame.pack(pady=10, padx=20, fill="both", expand=True)
-
-        # Navigation buttons frame
-        self.nav_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.nav_frame.pack(pady=(0, 20))
 
     def _clear_content_frame(self):
         """Clear all widgets from content frame."""
@@ -70,33 +77,106 @@ class InputWindow(ctk.CTkToplevel):
     # =========================================================================
 
     def _show_step_1(self):
-        """Show step 1: Activity text input."""
+        """Show step 1: Activity text input and Time selection."""
         self.current_step = 1
         self.title_label.configure(text="📝 What have you been working on?")
+        self.selected_time = None
 
         self._clear_content_frame()
         self._clear_nav_frame()
 
-        # Activity input
+        # --- Time Input Section ---
+        time_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
+        time_frame.pack(fill="x", pady=(0, 10))
+
+        time_label = ctk.CTkLabel(time_frame, text="Time:", font=("Arial", 12))
+        time_label.pack(side="left", padx=(0, 10))
+
+        # Default to "Now" (empty or explicit time)
+        self.time_entry = ctk.CTkEntry(
+            time_frame,
+            width=80,
+            height=30,
+            placeholder_text="Now",
+            font=("Arial", 12),
+        )
+        self.time_entry.pack(side="left")
+        
+        ctk.CTkLabel(time_frame, text="(HH:MM)", text_color="gray", font=("Arial", 10)).pack(side="left", padx=5)
+
+        # --- Activity Input ---
         self.activity_entry = ctk.CTkEntry(
             self.content_frame,
             width=350,
             height=40,
             placeholder_text="Describe your activity...",
             font=("Arial", 12),
+            border_color=["#979DA2", "#565B5E"]
         )
-        self.activity_entry.pack(pady=(10, 15))
+        self.activity_entry.pack(pady=(5, 15))
         self.activity_entry.focus_set()
 
-        # Recent activities suggestions
-        recent_entries = self.storage_manager.get_recent_entries(limit=3)
+        # --- Smart Backfill / Recent Section ---
+        
+        # 1. Detect missing slots in the last 90 minutes
+        missing_slots = self._detect_missing_slots()
+        
+        if missing_slots:
+            backfill_label = ctk.CTkLabel(
+                self.content_frame, 
+                text="⚠️ Missing logs found (Quick Backfill):", 
+                font=("Arial", 11, "bold"),
+                text_color="#E65100"
+            )
+            backfill_label.pack(pady=(0, 5))
+            
+            for slot_time in missing_slots:
+                time_str = slot_time.strftime("%H:%M")
+                btn = ctk.CTkButton(
+                    self.content_frame,
+                    text=f"📍 Log missing slot: {time_str}",
+                    font=("Arial", 11, "bold"),
+                    fg_color="#FFF8E1", # Light Amber
+                    text_color="#BF360C", # Deep Orange
+                    border_color="#FFE082",
+                    border_width=1,
+                    hover_color="#FFECB3",
+                    height=36, # Slightly taller for better touch/click
+                    anchor="w",
+                    command=lambda t=time_str: self._set_backfill_time(t)
+                )
+                btn.pack(fill="x", pady=4, padx=5) # Better padding
+                
+            # Aesthetic separator
+            sep_container = ctk.CTkFrame(self.content_frame, height=30, fg_color="transparent")
+            sep_container.pack(fill="x", pady=(15, 5))
+            ctk.CTkLabel(sep_container, text="OR RESUME RECENT DESCRIPTION", font=("Arial", 9, "bold"), text_color="gray").pack(pady=5)
+            # Subtle line
+            ctk.CTkFrame(self.content_frame, height=1, fg_color=["#E0E0E0", "#333333"]).pack(fill="x", padx=20, pady=(0, 10))
+
+        # 2. Recent activities (Filtered for TODAY only)
+        recent_entries = self.storage_manager.get_recent_entries(limit=10) # Get more to filter
+        todays_entries = []
+        seen_activities = set()
+        
+        today = datetime.date.today()
         if recent_entries:
+            for entry in recent_entries:
+                # Filter: Must be today AND unique
+                if entry["timestamp"].date() == today:
+                    act = entry["activity"]
+                    if act not in seen_activities:
+                        todays_entries.append(entry)
+                        seen_activities.add(act)
+                        if len(todays_entries) >= 3: break
+
+        if todays_entries:
             recent_label = ctk.CTkLabel(
-                self.content_frame, text="Quick select from recent:", font=("Arial", 11, "bold")
+                self.content_frame, text="Quick reuse from today:", font=("Arial", 11, "bold")
             )
             recent_label.pack(pady=(0, 8))
 
-            for entry in recent_entries:
+            for entry in todays_entries:
                 timestamp = entry["timestamp"].strftime("%H:%M")
                 activity = entry["activity"]
                 display_text = (
@@ -121,6 +201,38 @@ class InputWindow(ctk.CTkToplevel):
         # Navigation
         self._create_step_navigation("Next →", self._next_from_step_1)
 
+    def _detect_missing_slots(self):
+        """Check for empty 15-min slots in the last 90 minutes."""
+        now = datetime.datetime.now()
+        # Round down to nearest 15 min
+        minutes = (now.minute // 15) * 15
+        current_slot = now.replace(minute=minutes, second=0, microsecond=0)
+        
+        missing_slots = []
+        # Check last 6 slots (90 mins), skipping current one
+        for i in range(1, 7): 
+            check_time = current_slot - datetime.timedelta(minutes=15 * i)
+            end_time = check_time + datetime.timedelta(minutes=15)
+            
+            # Query storage for entries in this range
+            count = self.storage_manager.get_entries_count_for_range(check_time, end_time)
+            
+            if count == 0:
+                missing_slots.append(check_time)
+                if len(missing_slots) >= 3: # Limit to 3 suggestions
+                    break
+                    
+        return missing_slots
+
+    def _set_backfill_time(self, time_str):
+        """Set the time input field and focus activity entry."""
+        self.time_entry.delete(0, "end")
+        self.time_entry.insert(0, time_str)
+        # Visual feedback
+        self.time_entry.configure(border_color="#4CAF50") # Green border
+        self.activity_entry.focus_set() # Focus activity entry for immediate typing
+        self.after(500, lambda: self.time_entry.configure(border_color=["#979DA2", "#565B5E"]))
+
     def _use_recent_activity(self, activity):
         """Use a recent activity as input."""
         self.activity_entry.delete(0, "end")
@@ -129,6 +241,21 @@ class InputWindow(ctk.CTkToplevel):
     def _next_from_step_1(self):
         """Handle next button from step 1."""
         self.activity_text = self.activity_entry.get().strip()
+        time_text = self.time_entry.get().strip()
+        
+        # Validate Time
+        if time_text and time_text.lower() != "now":
+            try:
+                # Try parsing HH:MM
+                valid_time = datetime.datetime.strptime(time_text, "%H:%M").time()
+                # Combine with today's date
+                self.selected_time = datetime.datetime.combine(datetime.date.today(), valid_time)
+            except ValueError:
+                self.time_entry.configure(border_color="red")
+                return
+        else:
+            self.selected_time = None # Means "Now"
+
         if not self.activity_text:
             # Show error briefly
             self.activity_entry.configure(border_color="red")
@@ -258,6 +385,21 @@ class InputWindow(ctk.CTkToplevel):
             )
             no_goals_label.pack(pady=10)
 
+        # "Manage Daily Focus" Button
+        manage_daily_btn = ctk.CTkButton(
+            self.content_frame,
+            text=" ⚙️ Edit Today's Focus Goals ",
+            font=("Arial", 11),
+            fg_color="transparent",
+            border_color="#979DA2",
+            border_width=1,
+            text_color=["#333333", "#CCCCCC"],
+            hover_color=["#F0F0F0", "#3D3D3D"],
+            height=28,
+            command=self._open_daily_focus
+        )
+        manage_daily_btn.pack(pady=(10, 15))
+
         # None option
         none_radio = ctk.CTkRadioButton(
             self.content_frame,
@@ -290,7 +432,9 @@ class InputWindow(ctk.CTkToplevel):
 
         # Save entry
         self.entry_id = self.storage_manager.save_entry(
-            self.activity_text, self.selected_effectiveness
+            self.activity_text, 
+            self.selected_effectiveness,
+            custom_timestamp=self.selected_time
         )
 
         # Link to goal if selected
@@ -303,6 +447,27 @@ class InputWindow(ctk.CTkToplevel):
 
         # Close window
         self.on_close()
+
+    def _open_daily_focus(self):
+        """Open the daily focus window to manage goals."""
+        from goals.daily_focus_ui import DailyFocusWindow
+        
+        # Hide current window temporarily or just keep it open? 
+        # Better to keep open but maybe minimize interference.
+        
+        # We need a callback that reloads Step 3 when the focus window closes
+        def on_focus_closed():
+            if self.winfo_exists():
+                self.focus_force()
+                self._show_step_3() # Reload step 3 to see new goals
+
+        focus_window = DailyFocusWindow(
+            self.goal_manager, 
+            self.gamification_manager, 
+            on_complete_callback=on_focus_closed
+        )
+        focus_window.lift()
+        focus_window.focus_force()
 
     # =========================================================================
     # Navigation Helpers
@@ -375,9 +540,23 @@ class SettingsWindow(ctk.CTkToplevel):
 
     def save_settings(self):
         """Save the updated settings and close the window."""
+        start_time = self.ent_start.get().strip()
+        end_time = self.ent_end.get().strip()
+        
+        # Basic validation
+        try:
+            for t in [start_time, end_time]:
+                if len(t.split(':')) != 2: raise ValueError
+                h, m = map(int, t.split(':'))
+                if not (0 <= h <= 23 and 0 <= m <= 59): raise ValueError
+        except (ValueError, AttributeError):
+            self.ent_start.configure(border_color="red")
+            self.ent_end.configure(border_color="red")
+            return
+
         new_config = {
-            "start_time": self.ent_start.get().strip(),
-            "end_time": self.ent_end.get().strip(),
+            "start_time": start_time,
+            "end_time": end_time,
         }
         self.config_manager.save_config(new_config)
 
@@ -390,13 +569,22 @@ class SettingsWindow(ctk.CTkToplevel):
 class HistoryWindow(ctk.CTkToplevel):
     """Window for viewing activity history with date navigation."""
 
-    def __init__(self, storage_manager):
+    def __init__(self, storage_manager, goal_manager=None):
         super().__init__()
         self.storage_manager = storage_manager
+        self.goal_manager = goal_manager
         self.current_date = datetime.date.today()
         self.title("Activity Log")
         self.geometry("550x650")
         self.attributes("-topmost", True)
+
+        # Navigation Bar (Central Header)
+        self.nav_bar = ctk.CTkFrame(self, fg_color="transparent")
+        self.nav_bar.pack(fill="x", padx=10, pady=(10, 5))
+        
+        self._create_nav_button(self.nav_bar, "📋 Log", "current").pack(side="left", expand=True, padx=2)
+        self._create_nav_button(self.nav_bar, "📊 Analytics", lambda: self._switch_to("analytics")).pack(side="left", expand=True, padx=2)
+        self._create_nav_button(self.nav_bar, "🎯 Goals", lambda: self._switch_to("goals")).pack(side="left", expand=True, padx=2)
 
         # Title with date
         self.lbl_title = ctk.CTkLabel(self, text=self._format_title(), font=("Arial", 16, "bold"))
@@ -503,13 +691,18 @@ class HistoryWindow(ctk.CTkToplevel):
         # Reverse order to see latest first
         for entry in reversed(entries):
             # Entry is now a dict with keys: id, timestamp, activity, effectiveness
-            timestamp = entry["timestamp"].strftime("%H:%M:%S")
+            timestamp = entry["timestamp"].strftime("%H:%M")
             activity = entry["activity"]
             effectiveness = entry.get("effectiveness")
 
-            # Row Frame
-            row_frame = ctk.CTkFrame(self.scroll_frame)
-            row_frame.pack(pady=2, padx=5, fill="x")
+            # Row Frame (Card style)
+            row_frame = ctk.CTkFrame(
+                self.scroll_frame, 
+                fg_color=["#FAFAFA", "#2D2D2D"],
+                border_color=["#EEEEEE", "#3D3D3D"],
+                border_width=1
+            )
+            row_frame.pack(pady=4, padx=8, fill="x")
 
             # Time label
             lbl_time = ctk.CTkLabel(
@@ -526,10 +719,56 @@ class HistoryWindow(ctk.CTkToplevel):
                     text=eff_text,
                     text_color=eff_color,
                     width=40,
-                    font=("Arial", 10),
+                    font=("Arial", 10, "bold"),
                 )
                 lbl_eff.pack(side="left", padx=2)
 
-            # Activity label
-            lbl_comment = ctk.CTkLabel(row_frame, text=activity, anchor="w", wraplength=350)
-            lbl_comment.pack(side="left", padx=5, fill="x", expand=True)
+            # Activity text (The missing part)
+            activity_display = activity
+            
+            # Show linked goal if available
+            goal_id = entry.get("goal_id")
+            if goal_id and self.goal_manager:
+                goal_name = self.goal_manager.get_goal_name(goal_id)
+                if goal_name:
+                    activity_display = f"[{goal_name}] {activity}"
+
+            lbl_activity = ctk.CTkLabel(
+                row_frame,
+                text=activity_display,
+                font=("Arial", 12),
+                anchor="w",
+                justify="left",
+                wraplength=380  # Professional wrapping for readability
+            )
+            lbl_activity.pack(side="left", padx=(10, 5), fill="x", expand=True)
+
+    def _create_nav_button(self, parent, text, command):
+        """Helper to create consistent navigation buttons."""
+        is_current = command == "current"
+        return ctk.CTkButton(
+            parent,
+            text=text,
+            height=32,
+            fg_color="#1976D2" if is_current else "#F5F5F5",
+            text_color="white" if is_current else "#333333",
+            hover_color="#1565C0" if is_current else "#E0E0E0",
+            command=None if is_current else command
+        )
+
+    def _switch_to(self, target):
+        """Switch to another window via the main app instance."""
+        # Find the main app instance
+        parent = self.master
+        while parent and not hasattr(parent, "open_analytics"):
+            if hasattr(parent, "master"):
+                parent = parent.master
+            else:
+                break
+        
+        if parent:
+            if target == "analytics":
+                parent.open_analytics()
+            elif target == "goals":
+                parent.open_goal_management()
+            self.destroy()

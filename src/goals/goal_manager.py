@@ -18,6 +18,17 @@ class GoalManager:
         """Create a new goal."""
         return self.storage.create_goal(name, parent_id)
 
+    def bulk_create_goals(self, goals_data: List[Dict[str, Any]]) -> List[int]:
+        """
+        Create multiple goals at once.
+        goals_data: List of dicts with 'name' and optional 'parent_id'
+        """
+        created_ids = []
+        for goal in goals_data:
+            goal_id = self.create_goal(goal["name"], goal.get("parent_id"))
+            created_ids.append(goal_id)
+        return created_ids
+
     def get_active_goals(self) -> List[Dict[str, Any]]:
         """Get all active goals with their subgoals."""
         goals = self.storage.get_active_goals()
@@ -38,6 +49,10 @@ class GoalManager:
     def archive_goal(self, goal_id: int) -> None:
         """Archive a goal (soft delete)."""
         self.storage.archive_goal(goal_id)
+
+    def get_archived_goals(self) -> List[Dict[str, Any]]:
+        """Get all archived goals."""
+        return self.storage.get_archived_goals()
 
     def restore_goal(self, goal_id: int) -> None:
         """Restore an archived goal."""
@@ -79,6 +94,10 @@ class GoalManager:
     def cleanup_old_adhoc_goals(self) -> None:
         """Clean up adhoc goals older than 7 days."""
         self.storage.cleanup_old_adhoc_goals(days=7)
+
+    def get_goal_name(self, goal_id: int) -> Optional[str]:
+        """Get a goal's name by its ID."""
+        return self.storage.get_goal_name(goal_id)
 
     # =========================================================================
     # Activity-Goal Linking
