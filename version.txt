@@ -1,2 +1,2 @@
 [Version]
-Number=1.6.0
+Number=1.7.0

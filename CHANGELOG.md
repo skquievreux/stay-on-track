@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/skquievreux/stay-on-track/compare/v1.6.0...v1.7.0) (2026-01-23)
+
+
+### Features
+
+* **ui:** implement smart backfill, refresh daily focus and enhance ui components ([b3510e3](https://github.com/skquievreux/stay-on-track/commit/b3510e352e467f5a66877668f910b1d2e8fc8265))
+
 # [1.6.0](https://github.com/skquievreux/stay-on-track/compare/v1.5.0...v1.6.0) (2026-01-22)
 
 
