@@ -1,13 +1,10 @@
-<<<<<<< HEAD
 node_modules
 .DS_Store
-dist
+dist/
 .turbo
 coverage
 .env
 .npmrc
-=======
-
 venv/
 __pycache__/
 *.pyc
@@ -15,7 +12,5 @@ __pycache__/
 .vscode/
 *.log
 config.json
-dist/
 build/
 *.spec
->>>>>>> origin/feature/installer-and-ci
