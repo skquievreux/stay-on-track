@@ -75,9 +75,9 @@ block_cipher = None
 datas = collect_data_files('customtkinter')
 
 # Collect all submodules
-hiddenimports = collect_submodules('customtkinter') + [
+hiddenimports = collect_submodules('customtkinter') + collect_submodules('goals') + [
     'PIL', 'PIL._tkinter_finder', 'pystray', 'babel.numbers',
-    # Local modules - explicit list helps
+    # Local modules
     'config', 'storage', 'ui', 'scheduler', 'version',
     'analytics', 'analytics_ui', 'category_engine'
 ]
