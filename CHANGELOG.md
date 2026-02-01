@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/skquievreux/stay-on-track/compare/v1.7.0...v1.8.0) (2026-02-01)
+
+
+### Features
+
+* **export:** add database export to CSV functionality ([203502f](https://github.com/skquievreux/stay-on-track/commit/203502fbd2d10e3c75507868c0c493cd6d3579a6))
+
 # [1.7.0](https://github.com/skquievreux/stay-on-track/compare/v1.6.0...v1.7.0) (2026-01-23)
 
 
