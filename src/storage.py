@@ -597,6 +597,54 @@ class StorageManager:
             conn.commit()
 
     # =========================================================================
+    # Export
+    # =========================================================================
+
+    def export_to_csv(self):
+        """Export activities and daily focus to CSV files."""
+        export_dir = os.path.join(self.data_dir, "exports")
+        os.makedirs(export_dir, exist_ok=True)
+
+        activities_file = os.path.join(export_dir, f"activities_export_{datetime.date.today().isoformat()}.csv")
+        focus_file = os.path.join(export_dir, f"daily_focus_export_{datetime.date.today().isoformat()}.csv")
+
+        # Export Activities
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT e.timestamp, e.activity, e.effectiveness, g.name as goal_name
+                FROM entries e
+                LEFT JOIN goals g ON e.goal_id = g.id
+                ORDER BY e.timestamp DESC
+            """)
+            rows = cursor.fetchall()
+
+            with open(activities_file, "w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow(["Timestamp", "Activity", "Effectiveness", "Goal"])
+                for row in rows:
+                    writer.writerow([row["timestamp"], row["activity"], row["effectiveness"], row["goal_name"]])
+
+        # Export Daily Focus
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT df.date, df.priority, g.name as goal_name, df.adhoc_name
+                FROM daily_focus df
+                LEFT JOIN goals g ON df.goal_id = g.id
+                ORDER BY df.date DESC, df.priority ASC
+            """)
+            rows = cursor.fetchall()
+
+            with open(focus_file, "w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow(["Date", "Priority", "Goal Name", "Adhoc Name"])
+                for row in rows:
+                    writer.writerow([row["date"], row["priority"], row["goal_name"], row["adhoc_name"]])
+
+        return export_dir
+
+    # =========================================================================
     # Activity-Goal Linking
     # =========================================================================
 
