@@ -585,6 +585,7 @@ class HistoryWindow(ctk.CTkToplevel):
         self._create_nav_button(self.nav_bar, "📋 Log", "current").pack(side="left", expand=True, padx=2)
         self._create_nav_button(self.nav_bar, "📊 Analytics", lambda: self._switch_to("analytics")).pack(side="left", expand=True, padx=2)
         self._create_nav_button(self.nav_bar, "🎯 Goals", lambda: self._switch_to("goals")).pack(side="left", expand=True, padx=2)
+        self._create_nav_button(self.nav_bar, "📤 Export", self._export_data).pack(side="left", expand=True, padx=2)
 
         # Title with date
         self.lbl_title = ctk.CTkLabel(self, text=self._format_title(), font=("Arial", 16, "bold"))
@@ -656,6 +657,16 @@ class HistoryWindow(ctk.CTkToplevel):
         if os.path.exists(folder_path):
             with subprocess.Popen(f'explorer "{folder_path}"', shell=True) as _:
                 pass  # Process will run independently
+
+    def _export_data(self):
+        """Trigger database export to CSV."""
+        try:
+            export_dir = self.storage_manager.export_to_csv()
+            if os.path.exists(export_dir):
+                with subprocess.Popen(f'explorer "{export_dir}"', shell=True) as _:
+                    pass
+        except Exception as e:
+            print(f"Export error: {e}")
 
     def _refresh(self):
         """Refresh the window with new date"""
